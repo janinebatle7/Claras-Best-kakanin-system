@@ -11,12 +11,16 @@ const orderRoutes = require('./routes/orders');
 
 const app = express();
 
-// Database configuration connection pool (Reconfigured for your MySQL Workbench schema)
+// Database configuration connection pool (Reading from environment variables to bypass GitHub block)
 const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST || 'mysql-38880adb-janine-batle10.e.aivencloud.com',
+    user: process.env.DB_USER || 'avnadmin',
+    password: process.env.DB_PASSWORD || 'AVNS_G2z57INXzp0GM7bXKVK', 
     database: process.env.DB_NAME || 'kakanin_Final',
+    port: parseInt(process.env.DB_PORT) || 12590, // Explicitly route through Aiven's custom MySQL port
+    ssl: {
+        rejectUnauthorized: false // Necessary handshake configuration for cloud instances
+    },
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0

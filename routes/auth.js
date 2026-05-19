@@ -1,98 +1,66 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const pool = require('../config/db');
 
-// CUSTOMER SIGNUP
+// --- USER SIGNUP ROUTE ---
 router.post('/signup', async (req, res) => {
-    const { name, email, password, phone } = req.body;
-
-    if (!name || !email || !password || !phone) {
-        return res.status(400).json({ error: "All fields are required." });
-    }
-
+    // This grabs the clean MySQL connection pool we defined in server.js
+    const pool = req.app.get('pool'); 
+    
     try {
-        // Check if user already exists
-        const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (userCheck.rows.length > 0) {
-            return res.status(400).json({ error: "Email is already registered." });
+        const { name, email, password, phone } = req.body;
+        
+        // 1. Check if the user email already exists using MySQL syntax
+        const [existingUser] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+        if (existingUser.length > 0) {
+            return res.status(400).json({ error: "Email address is already registered." });
         }
 
-        // Hash the password for security
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        // Insert new customer into the database
+        // 2. Hash the password for secure database storage
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // 3. Insert the new user into your MySQL database table
         await pool.query(
-            'INSERT INTO users (name, email, password, phone, role) VALUES ($1, $2, $3, $4, $5)',
+            'INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)',
             [name, email, hashedPassword, phone, 'Customer']
         );
-
-        res.status(201).json({ message: "Registration successful! You can now log in." });
+        
+        res.status(201).json({ message: "Registration successful!" });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Server error during registration." });
+        console.error("Signup Database Error:", err);
+        res.status(500).json({ error: err.message });
     }
 });
 
-// USER LOGIN (Customer, Staff, Admin)
+// --- USER LOGIN ROUTE ---
 router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-        return res.status(400).json({ error: "Please enter all fields." });
-    }
-
+    const pool = req.app.get('pool');
+    
     try {
-        // Find user by email
-        const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (result.rows.length === 0) {
-            return res.status(400).json({ error: "Invalid email or password." });
+        const { email, password } = req.body;
+        
+        // Query the user using MySQL syntax
+        const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+        if (rows.length === 0) {
+            return res.status(400).json({ error: "User not found" });
         }
 
-        const user = result.rows[0];
-
-        // Check password validation
+        const user = rows[0];
+        
+        // Compare the submitted password with the hashed password in the database
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ error: "Invalid email or password." });
+            return res.status(400).json({ error: "Incorrect password" });
         }
 
-        // Save essential user data into the session
-        req.session.user = {
-            id: user.id,
-            name: user.name,
-            role: user.role
-        };
-
-        res.json({ 
-            message: "Login successful!", 
-            role: user.role,
-            user: { name: user.name, email: user.email }
-        });
+        // Initialize the user session structure
+        req.session.user = { id: user.id, name: user.name, role: user.role };
+        
+        // Return success message and user role for front-end redirection routing
+        res.json({ message: "Login successful", role: user.role });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Server error during login." });
-    }
-});
-
-// USER LOGOUT
-router.get('/logout', (req, res) => {
-    req.session.destroy((err) => {
-        if (err) {
-            return res.status(500).json({ error: "Could not log out. Try again." });
-        }
-        res.clearCookie('connect.sid'); // Clear session cookie
-        res.json({ message: "Successfully logged out." });
-    });
-});
-
-// CHECK CURRENT SESSION STATUS
-router.get('/session', (req, res) => {
-    if (req.session.user) {
-        res.json({ loggedIn: true, user: req.session.user });
-    } else {
-        res.json({ loggedIn: false });
+        console.error("Login Database Error:", err);
+        res.status(500).json({ error: err.message });
     }
 });
 
