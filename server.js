@@ -1,5 +1,5 @@
 const express = require('express');
-const { Pool } = require('pg');
+const mysql = require('mysql2/promise');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
@@ -11,10 +11,15 @@ const orderRoutes = require('./routes/orders');
 
 const app = express();
 
-// Database configuration connection pool (using your Aiven string)
-const pool = new Pool({ 
-    connectionString: process.env.DATABASE_URL, 
-    ssl: { rejectUnauthorized: false } 
+// Database configuration connection pool (Reconfigured for your MySQL Workbench schema)
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME || 'kakanin_Final',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
 // Middleware standard parsers
@@ -24,7 +29,7 @@ app.use(express.static('public'));
 
 // Express Session state initialization
 app.use(session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || 'claras_best_secret_key',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 day validity
@@ -33,21 +38,20 @@ app.use(session({
 // Expose the database pool instance globally so your routes can access it if needed
 app.set('pool', pool);
 
-
 // --- LINK MODULAR ROUTES (Keeps front-end fetch calls working perfectly) ---
-// Mounts everything seamlessly to your front-end scripts (/api/login, /api/products, etc.)
 app.use('/api', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
-
 
 // --- AUTHENTICATION BACKUP FALLBACKS ---
 app.post('/api/signup', async (req, res) => {
     try {
         const { name, email, password, phone } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // Swapped to MySQL "?" parameterization syntax
         await pool.query(
-            'INSERT INTO users (name, email, password, phone, role) VALUES ($1, $2, $3, $4, $5)',
+            'INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)',
             [name, email, hashedPassword, phone, 'Customer']
         );
         res.status(201).json({ message: "Registration successful!" });
@@ -57,16 +61,21 @@ app.post('/api/signup', async (req, res) => {
 });
 
 app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body;
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (result.rows.length === 0) return res.status(400).json({ error: "User not found" });
+    try {
+        const { email, password } = req.body;
+        // Destructured MySQL results array structure
+        const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+        if (rows.length === 0) return res.status(400).json({ error: "User not found" });
 
-    const user = result.rows[0];
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ error: "Incorrect password" });
+        const user = rows[0];
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ error: "Incorrect password" });
 
-    req.session.user = { id: user.id, name: user.name, role: user.role };
-    res.json({ message: "Login successful", role: user.role });
+        req.session.user = { id: user.id, name: user.name, role: user.role };
+        res.json({ message: "Login successful", role: user.role });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.get('/api/logout', (req, res) => {
@@ -76,8 +85,12 @@ app.get('/api/logout', (req, res) => {
 
 // --- PUBLIC: FETCH PRODUCTS FALLBACK ---
 app.get('/api/products', async (req, res) => {
-    const result = await pool.query('SELECT * FROM products');
-    res.json(result.rows);
+    try {
+        const [rows] = await pool.query('SELECT * FROM products');
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // --- CUSTOMER: PLACE ORDER/RESERVATION FALLBACK ---
@@ -87,36 +100,40 @@ app.post('/api/orders', async (req, res) => {
     const { items, type, payment_method, pickup_date_time, customer_name } = req.body;
     const userId = req.session.user.id;
 
+    // Grab a single clean connection link to accurately manage transactional queries
+    const connection = await pool.getConnection();
     try {
-        await pool.query('BEGIN');
+        await connection.query('START TRANSACTION');
         
         let total = 0;
         for (let item of items) {
-            const prod = await pool.query('SELECT price FROM products WHERE id = $1', [item.product_id]);
-            total += prod.rows[0].price * item.quantity;
+            const [prodRows] = await connection.query('SELECT price FROM products WHERE id = ?', [item.product_id]);
+            total += prodRows[0].price * item.quantity;
         }
 
-        const orderRes = await pool.query(
+        const [orderRes] = await connection.query(
             `INSERT INTO orders (user_id, customer_name, type, total_price, payment_method, pickup_date_time) 
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+             VALUES (?, ?, ?, ?, ?, ?)`,
             [userId, customer_name || req.session.user.name, type, total, payment_method, pickup_date_time]
         );
-        const orderId = orderRes.rows[0].id;
+        const orderId = orderRes.insertId; // Pulling inserted ID via native MySQL parameter formats
 
         for (let item of items) {
-            const prod = await pool.query('SELECT price FROM products WHERE id = $1', [item.product_id]);
-            await pool.query(
-                `INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase) VALUES ($1, $2, $3, $4)`,
-                [orderId, item.product_id, item.quantity, prod.rows[0].price]
+            const [prodRows] = await connection.query('SELECT price FROM products WHERE id = ?', [item.product_id]);
+            await connection.query(
+                `INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase) VALUES (?, ?, ?, ?)`,
+                [orderId, item.product_id, item.quantity, prodRows[0].price]
             );
-            await pool.query('UPDATE products SET stock_quantity = stock_quantity - $1 WHERE id = $2', [item.quantity, item.product_id]);
+            await connection.query('UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?', [item.quantity, item.product_id]);
         }
 
-        await pool.query('COMMIT');
+        await connection.query('COMMIT');
         res.status(201).json({ message: "Order processed successfully!", orderId });
     } catch (err) {
-        await pool.query('ROLLBACK');
+        await connection.query('ROLLBACK');
         res.status(500).json({ error: err.message });
+    } finally {
+        connection.release(); // Explicitly release connection back to pool
     }
 });
 
@@ -125,20 +142,33 @@ app.put('/api/orders/:id', async (req, res) => {
     if (!req.session.user || (req.session.user.role !== 'Staff' && req.session.user.role !== 'Admin')) {
         return res.status(403).json({ error: "Unauthorized access" });
     }
-    const { order_status, payment_status } = req.body;
-    await pool.query(
-        'UPDATE orders SET order_status = COALESCE($1, order_status), payment_status = COALESCE($2, payment_status) WHERE id = $3',
-        [order_status, payment_status, req.params.id]
-    );
-    res.json({ message: "Order updated successfully." });
+    try {
+        const { order_status, payment_status } = req.body;
+        // Reconfigured query using COALESCE with correct order parameters
+        await pool.query(
+            'UPDATE orders SET order_status = COALESCE(?, order_status), payment_status = COALESCE(?, payment_status) WHERE id = ?',
+            [order_status, payment_status, req.params.id]
+        );
+        res.json({ message: "Order updated successfully." });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // --- ADMIN: SALES MONITORING ---
 app.get('/api/admin/sales', async (req, res) => {
     if (!req.session.user || req.session.user.role !== 'Admin') return res.status(403).json({ error: "Access denied" });
-    const totalSales = await pool.query("SELECT SUM(total_price) FROM orders WHERE payment_status = 'Paid'");
-    const pendingOrders = await pool.query("SELECT COUNT(*) FROM orders WHERE order_status = 'Pending'");
-    res.json({ totalSales: totalSales.rows[0].sum || 0, pendingOrders: pendingOrders.rows[0].count });
+    try {
+        const [salesRows] = await pool.query("SELECT SUM(total_price) AS sum FROM orders WHERE payment_status = 'Paid'");
+        const [pendingRows] = await pool.query("SELECT COUNT(*) AS count FROM orders WHERE order_status = 'Pending'");
+        
+        res.json({ 
+            totalSales: salesRows[0].sum || 0, 
+            pendingOrders: pendingRows[0].count 
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Port binding listener
