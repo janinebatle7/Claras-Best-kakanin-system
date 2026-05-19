@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clara's Best - Reservations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #78350f; --primary-light: #b45309; --primary-accent: #fef3c7; --bg-main: #fafaf9; --sidebar-bg: #ffffff; --border: #e7e5e4; --radius-lg: 16px; --radius-sm: 8px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; }
+        
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; }
+        .sidebar-brand { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 40px; padding-left: 12px; border-left: 4px solid var(--primary-light); }
+        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; }
+        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: #78716c; text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-sm); }
+        .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); }
+        
+        .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; }
+        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; min-width: 600px; }
+        .data-table th, .data-table td { padding: 20px; border-bottom: 1px solid var(--border); }
+        .data-table th { background: #faf9f6; color: var(--primary); font-weight: 700; }
+        
+        .badge { display: inline-flex; padding: 4px 12px; font-size: 11px; font-weight: 800; border-radius: 20px; text-transform: uppercase; }
+        .badge-approved { background: #dcfce7; color: #16a34a; }
+        .badge-pending { background: #fef9c3; color: #ca8a04; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-brand">Clara's Best</div>
+        <ul class="sidebar-menu">
+            <li><a href="customer.html" class="menu-item">Home</a></li>
+            <li><a href="products.html" class="menu-item">Products</a></li>
+            <li><a href="cart.html" class="menu-item">Cart</a></li>
+            <li><a href="orders.html" class="menu-item">My Orders</a></li>
+            <li><a href="reservation.html" class="menu-item active">My Reservations</a></li>
+            <li><a href="cancellation.html" class="menu-item">Cancellations</a></li>
+            <li><a href="payment.html" class="menu-item">Payments</a></li>
+            <li><a href="profile.html" class="menu-item">Profile</a></li>
+        </ul>
+    </nav>
+    <main class="main-content">
+        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px;">Advanced Event Bookings</h2>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead><tr><th>Reserve ID</th><th>Target Schedule Time</th><th>Total Sum</th><th>Order Status</th><th>Payment Status</th></tr></thead>
+                <tbody id="reservations-tbody">
+                    <tr><td colspan="5" style="text-align:center;">Loading your reservations...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        async function loadReservations() {
+            const tbody = document.getElementById('reservations-tbody');
+            try {
+                const res = await fetch('/api/orders');
+                if (!res.ok) throw new Error('Unauthorized or Server Error');
+                
+                const data = await res.json();
+                tbody.innerHTML = '';
+                
+                // Filter only Reservations
+                const reservations = data.filter(t => t.type === 'Reservation');
+                
+                if (reservations.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px 0;">No active catering reservations found.</td></tr>`;
+                    return;
+                }
+                
+                reservations.forEach(t => {
+                    const sClass = t.order_status === 'Completed' ? 'badge-approved' : 'badge-pending';
+                    const pClass = t.payment_status === 'Paid' ? 'badge-approved' : 'badge-pending';
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>#${t.id}</strong></td>
+                            <td>${t.pickup_date_time ? new Date(t.pickup_date_time).toLocaleString() : 'N/A'}</td>
+                            <td>₱${parseFloat(t.total_price || 0).toFixed(2)}</td>
+                            <td><span class="badge ${sClass}">${t.order_status || 'Pending'}</span></td>
+                            <td><span class="badge ${pClass}">${t.payment_status || 'Unpaid'}</span></td>
+                        </tr>`;
+                });
+            } catch(err) { 
+                console.error(err); 
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red; padding:20px;">Error loading reservations. Please ensure you are logged in.</td></tr>`;
+            }
+        }
+        window.addEventListener('DOMContentLoaded', loadReservations);
+    </script>
+</body>
+</html>

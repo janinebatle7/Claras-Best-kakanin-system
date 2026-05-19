@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Clara's Best - Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #78350f; --primary-light: #b45309; --primary-accent: #fef3c7; --bg-main: #fafaf9; --sidebar-bg: #ffffff; --border: #e7e5e4; --radius-lg: 16px; --radius-sm: 8px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; }
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; }
+        .sidebar-brand { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 40px; padding-left: 12px; border-left: 4px solid var(--primary-light); }
+        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; }
+        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: #78716c; text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-sm); }
+        .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); }
+        .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; }
+        .card { background: white; padding: 32px; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; }
+        .btn { padding: 12px 24px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; background: var(--primary-light); color: white; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-brand">Clara's Best</div>
+        <ul class="sidebar-menu">
+            <li><a href="customer.html" class="menu-item">Home</a></li>
+            <li><a href="products.html" class="menu-item">Products</a></li>
+            <li><a href="cart.html" class="menu-item">Cart</a></li>
+            <li><a href="orders.html" class="menu-item">My Orders</a></li>
+            <li><a href="reservation.html" class="menu-item">My Reservations</a></li>
+            <li><a href="cancellation.html" class="menu-item">Cancellations</a></li>
+            <li><a href="payment.html" class="menu-item">Payments</a></li>
+            <li><a href="profile.html" class="menu-item active">Profile</a></li>
+        </ul>
+    </nav>
+    <main class="main-content">
+        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px;">Account Details</h2>
+        <div class="card">
+            <div class="form-group"><label>Full Identity Client Name</label><input type="text" id="prof-name" class="form-control"></div>
+            <div class="form-group"><label>Protected Mail Login Address</label><input type="email" id="prof-email" class="form-control" readonly style="background:#f5f5f4; color:#78716c; cursor:not-allowed;"></div>
+            <div class="form-group"><label>Mobile Contact Route Number</label><input type="text" id="prof-phone" class="form-control"></div>
+            <button class="btn" onclick="saveProfile()">Commit Changes</button>
+        </div>
+    </main>
+
+    <script>
+        async function loadProfile() {
+            try {
+                const res = await fetch('/api/profile');
+                if (res.ok) {
+                    const u = await res.json();
+                    document.getElementById('prof-name').value = u.name || '';
+                    document.getElementById('prof-email').value = u.email || '';
+                    document.getElementById('prof-phone').value = u.phone || '';
+                }
+            } catch(err) { console.error(err); }
+        }
+        async function saveProfile() {
+            const name = document.getElementById('prof-name').value;
+            const phone = document.getElementById('prof-phone').value;
+            try {
+                const res = await fetch('/api/profile/update', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, phone }) });
+                if (res.ok) alert("Identity profile matrix parameters updated successfully!");
+            } catch(err) { console.error(err); }
+        }
+        window.addEventListener('DOMContentLoaded', loadProfile);
+    </script>
+</body>
+</html>

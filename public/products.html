@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clara's Best - Products</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #78350f; --primary-light: #b45309; --primary-accent: #fef3c7; --bg-main: #fafaf9; --sidebar-bg: #ffffff; --text-dark: #1c1917; --text-muted: #78716c; --border: #e7e5e4; --radius-lg: 16px; --radius-sm: 8px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; }
+        
+        /* Sidebar Styling */
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; }
+        .sidebar-brand { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 40px; padding-left: 12px; border-left: 4px solid var(--primary-light); }
+        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; }
+        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-sm); transition: 0.2s; }
+        .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); }
+        
+        /* Main Content */
+        .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; min-height: 100vh; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
+        .product-card { background: white; padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.2s; }
+        .product-card:hover { transform: translateY(-5px); border-color: var(--primary-light); }
+        .product-price { font-size: 20px; font-weight: 800; color: var(--primary-light); margin: 16px 0; }
+        .btn { padding: 12px 24px; font-size: 14px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; background-color: var(--primary-light); color: white; width: 100%; transition: background 0.2s; }
+        .btn:hover { background-color: var(--primary); }
+        .loading-text { color: var(--text-muted); font-style: italic; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-brand">Clara's Best</div>
+        <ul class="sidebar-menu">
+            <li><a href="customer.html" class="menu-item">Home</a></li>
+            <li><a href="products.html" class="menu-item active">Products</a></li>
+            <li><a href="cart.html" class="menu-item">Cart</a></li>
+            <li><a href="orders.html" class="menu-item">My Orders</a></li>
+            <li><a href="reservation.html" class="menu-item">My Reservations</a></li>
+            <li><a href="cancellation.html" class="menu-item">Cancellations</a></li>
+            <li><a href="payment.html" class="menu-item">Payments</a></li>
+            <li><a href="profile.html" class="menu-item">Profile</a></li>
+        </ul>
+    </nav>
+    
+    <main class="main-content">
+        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px;">Our Premium Menu</h2>
+        <div class="product-grid" id="products-container">
+            <p class="loading-text">Fetching fresh delicacies from our kitchen...</p>
+        </div>
+    </main>
+
+    <script>
+        // Fetch products from your backend API
+        async function loadProducts() {
+            try {
+                const res = await fetch('/api/products');
+                if (!res.ok) throw new Error('Failed to fetch');
+                
+                const products = await res.json();
+                const container = document.getElementById('products-container');
+                container.innerHTML = '';
+                
+                if (products.length === 0) {
+                    container.innerHTML = '<p>No products available right now.</p>';
+                    return;
+                }
+
+                products.forEach(p => {
+                    container.innerHTML += `
+                        <div class="product-card">
+                            <h3 style="font-size:16px; font-weight:700;">${p.name}</h3>
+                            <p style="font-size:13.5px; color:var(--text-muted); flex-grow:1; margin-top:6px; line-height:1.5;">${p.description || 'A delicious homemade delicacy.'}</p>
+                            <p class="product-price">₱${parseFloat(p.price).toFixed(2)}</p>
+                            <button class="btn" onclick="addToCart(${p.id}, '${p.name}', ${p.price})">Add to Cart</button>
+                        </div>`;
+                });
+            } catch (err) { 
+                console.error(err); 
+                document.getElementById('products-container').innerHTML = '<p style="color:red;">Error loading products. Please check if your server is running.</p>';
+            }
+        }
+
+        // Keep existing Add to Cart logic
+        function addToCart(id, name, price) {
+            let cart = JSON.parse(localStorage.getItem('userCart')) || [];
+            const idx = cart.findIndex(item => item.product_id === id);
+            
+            if (idx > -1) {
+                cart[idx].quantity += 1;
+            } else {
+                cart.push({ product_id: id, name, price: parseFloat(price), quantity: 1 });
+            }
+            
+            localStorage.setItem('userCart', JSON.stringify(cart));
+            alert(`${name} added to cart!`);
+        }
+
+        window.addEventListener('DOMContentLoaded', loadProducts);
+    </script>
+</body>
+</html>

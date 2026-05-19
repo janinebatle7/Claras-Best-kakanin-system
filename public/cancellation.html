@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Clara's Best - Cancellations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #78350f; --primary-light: #b45309; --primary-accent: #fef3c7; --bg-main: #fafaf9; --sidebar-bg: #ffffff; --border: #e7e5e4; --radius-lg: 16px; --radius-sm: 8px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; }
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; }
+        .sidebar-brand { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 40px; padding-left: 12px; border-left: 4px solid var(--primary-light); }
+        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; }
+        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: #78716c; text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-sm); }
+        .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); }
+        .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; }
+        .card { background: white; padding: 32px; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 24px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; }
+        .btn { padding: 12px 24px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; background: var(--primary-light); color: white; }
+        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; }
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        .data-table th, .data-table td { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+        .badge { display: inline-flex; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 30px; text-transform: uppercase; background: #fee2e2; color: #dc2626; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-brand">Clara's Best</div>
+        <ul class="sidebar-menu">
+            <li><a href="customer.html" class="menu-item">Home</a></li>
+            <li><a href="products.html" class="menu-item">Products</a></li>
+            <li><a href="cart.html" class="menu-item">Cart</a></li>
+            <li><a href="orders.html" class="menu-item">My Orders</a></li>
+            <li><a href="reservation.html" class="menu-item">My Reservations</a></li>
+            <li><a href="cancellation.html" class="menu-item active">Cancellations</a></li>
+            <li><a href="payment.html" class="menu-item">Payments</a></li>
+            <li><a href="profile.html" class="menu-item">Profile</a></li>
+        </ul>
+    </nav>
+    <main class="main-content">
+        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px;">Manage Cancellations</h2>
+        <div class="card">
+            <h3 style="font-size:16px; margin-bottom:16px;">File Cancellation Claim</h3>
+            <div class="form-group"><label>Transaction Target ID</label><input type="number" id="cancel-id" class="form-control"></div>
+            <div class="form-group"><label>Statement Explanation Rationale</label><textarea id="cancel-reason" class="form-control" rows="3"></textarea></div>
+            <button class="btn" onclick="submitCancel()">Submit Cancellation</button>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead><tr><th>Target ID</th><th>Reason Stated</th><th>Review Status</th></tr></thead>
+                <tbody id="cancellations-tbody"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        async function loadCancellations() {
+            try {
+                const res = await fetch('/api/orders');
+                const data = await res.json();
+                const tbody = document.getElementById('cancellations-tbody');
+                tbody.innerHTML = '';
+                const items = data.filter(t => t.cancellation_status && t.cancellation_status !== 'None');
+                if(items.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:20px 0;">No logs found.</td></tr>`;
+                    return;
+                }
+                items.forEach(t => {
+                    tbody.innerHTML += `<tr><td><strong>#${t.id}</strong></td><td>${t.cancellation_reason}</td><td><span class="badge">${t.cancellation_status}</span></td></tr>`;
+                });
+            } catch(err) { console.error(err); }
+        }
+        async function submitCancel() {
+            const id = document.getElementById('cancel-id').value;
+            const reason = document.getElementById('cancel-reason').value;
+            if(!id || !reason) return alert("Fill fields!");
+            try {
+                const res = await fetch(`/api/orders/${id}/cancel`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason }) });
+                if (res.ok) { alert("Cancellation filed."); loadCancellations(); }
+            } catch(err) { console.error(err); }
+        }
+        window.addEventListener('DOMContentLoaded', loadCancellations);
+    </script>
+</body>
+</html>

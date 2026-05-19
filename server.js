@@ -4,70 +4,49 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
-// Import the router modules
-const authRoutes = require('./routes/auth');
-const productRoutes = require('./routes/products');
-const orderRoutes = require('./routes/orders');
-
 const app = express();
 
-// Database configuration connection pool (Reading from environment variables to bypass GitHub block)
+// Database configuration
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'mysql-38880adb-janine-batle10.e.aivencloud.com',
     user: process.env.DB_USER || 'avnadmin',
     password: process.env.DB_PASSWORD || 'AVNS_G2z57INXzp0GM7bXKVK', 
     database: process.env.DB_NAME || 'kakanin_Final',
-    port: parseInt(process.env.DB_PORT) || 12590, // Explicitly route through Aiven's custom MySQL port
-    ssl: {
-        rejectUnauthorized: false // Necessary handshake configuration for cloud instances
-    },
+    port: parseInt(process.env.DB_PORT) || 12590,
+    ssl: { rejectUnauthorized: false },
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
 });
 
-// Middleware standard parsers
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// Express Session state initialization
 app.use(session({
     secret: process.env.SESSION_SECRET || 'claras_best_secret_key',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 day validity
+    cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// Expose the database pool instance globally so your routes can access it if needed
 app.set('pool', pool);
 
-// --- LINK MODULAR ROUTES (Keeps front-end fetch calls working perfectly) ---
-app.use('/api', authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
-
-// --- AUTHENTICATION BACKUP FALLBACKS ---
+// --- AUTH ROUTES ---
 app.post('/api/signup', async (req, res) => {
     try {
         const { name, email, password, phone } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
-        
-        // Swapped to MySQL "?" parameterization syntax
-        await pool.query(
-            'INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)',
-            [name, email, hashedPassword, phone, 'Customer']
-        );
+        await pool.query('INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)', 
+        [name, email, hashedPassword, phone, 'Customer']);
         res.status(201).json({ message: "Registration successful!" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        // Destructured MySQL results array structure
         const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
         if (rows.length === 0) return res.status(400).json({ error: "User not found" });
 
@@ -77,9 +56,7 @@ app.post('/api/login', async (req, res) => {
 
         req.session.user = { id: user.id, name: user.name, role: user.role };
         res.json({ message: "Login successful", role: user.role });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.get('/api/logout', (req, res) => {
@@ -87,28 +64,22 @@ app.get('/api/logout', (req, res) => {
     res.json({ message: "Logged out" });
 });
 
-// --- PUBLIC: FETCH PRODUCTS FALLBACK ---
+// --- PRODUCTS ROUTE ---
 app.get('/api/products', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM products');
         res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- CUSTOMER: PLACE ORDER/RESERVATION FALLBACK ---
+// --- ORDERS & RESERVATIONS ---
 app.post('/api/orders', async (req, res) => {
     if (!req.session.user) return res.status(401).json({ error: "Please log in first." });
     
     const { items, type, payment_method, pickup_date_time, customer_name } = req.body;
-    const userId = req.session.user.id;
-
-    // Grab a single clean connection link to accurately manage transactional queries
     const connection = await pool.getConnection();
     try {
         await connection.query('START TRANSACTION');
-        
         let total = 0;
         for (let item of items) {
             const [prodRows] = await connection.query('SELECT price FROM products WHERE id = ?', [item.product_id]);
@@ -116,11 +87,10 @@ app.post('/api/orders', async (req, res) => {
         }
 
         const [orderRes] = await connection.query(
-            `INSERT INTO orders (user_id, customer_name, type, total_price, payment_method, pickup_date_time) 
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [userId, customer_name || req.session.user.name, type, total, payment_method, pickup_date_time]
+            `INSERT INTO orders (user_id, customer_name, type, total_price, payment_method, pickup_date_time) VALUES (?, ?, ?, ?, ?, ?)`,
+            [req.session.user.id, customer_name || req.session.user.name, type, total, payment_method, pickup_date_time]
         );
-        const orderId = orderRes.insertId; // Pulling inserted ID via native MySQL parameter formats
+        const orderId = orderRes.insertId;
 
         for (let item of items) {
             const [prodRows] = await connection.query('SELECT price FROM products WHERE id = ?', [item.product_id]);
@@ -132,49 +102,74 @@ app.post('/api/orders', async (req, res) => {
         }
 
         await connection.query('COMMIT');
-        res.status(201).json({ message: "Order processed successfully!", orderId });
+        res.status(201).json({ message: "Order processed!", orderId });
     } catch (err) {
         await connection.query('ROLLBACK');
         res.status(500).json({ error: err.message });
-    } finally {
-        connection.release(); // Explicitly release connection back to pool
-    }
+    } finally { connection.release(); }
 });
 
-// --- STAFF/ADMIN: UPDATE ORDER STATUS & RECORD PAYMENTS FALLBACK ---
-app.put('/api/orders/:id', async (req, res) => {
-    if (!req.session.user || (req.session.user.role !== 'Staff' && req.session.user.role !== 'Admin')) {
-        return res.status(403).json({ error: "Unauthorized access" });
-    }
+app.get('/api/orders', async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
     try {
-        const { order_status, payment_status } = req.body;
-        // Reconfigured query using COALESCE with correct order parameters
-        await pool.query(
-            'UPDATE orders SET order_status = COALESCE(?, order_status), payment_status = COALESCE(?, payment_status) WHERE id = ?',
-            [order_status, payment_status, req.params.id]
-        );
-        res.json({ message: "Order updated successfully." });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+        const [rows] = await pool.query('SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC', [req.session.user.id]);
+        res.json(rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- ADMIN: SALES MONITORING ---
-app.get('/api/admin/sales', async (req, res) => {
-    if (!req.session.user || req.session.user.role !== 'Admin') return res.status(403).json({ error: "Access denied" });
+// --- CANCELLATIONS & PAYMENTS ---
+app.post('/api/orders/:id/cancel', async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
     try {
-        const [salesRows] = await pool.query("SELECT SUM(total_price) AS sum FROM orders WHERE payment_status = 'Paid'");
-        const [pendingRows] = await pool.query("SELECT COUNT(*) AS count FROM orders WHERE order_status = 'Pending'");
+        await pool.query("UPDATE orders SET cancellation_status = 'Pending', cancellation_reason = ? WHERE id = ? AND user_id = ?", 
+        [req.body.reason, req.params.id, req.session.user.id]);
+        res.json({ message: "Cancellation request filed." });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/orders/:id/payment', async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+    try {
+        const [order] = await pool.query('SELECT total_price FROM orders WHERE id = ? AND user_id = ?', [req.params.id, req.session.user.id]);
+        if(order.length === 0) return res.status(404).json({ error: "Order not found" });
         
-        res.json({ 
-            totalSales: salesRows[0].sum || 0, 
-            pendingOrders: pendingRows[0].count 
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+        await pool.query('INSERT INTO payments (order_id, amount_paid, payment_method, reference_number, paid_at) VALUES (?, ?, ?, ?, NOW())', 
+        [req.params.id, order[0].total_price, 'GCash', req.body.reference_number]);
+        res.json({ message: "Payment recorded." });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Port binding listener
+app.get('/api/payments/history', async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+    try {
+        const [rows] = await pool.query('SELECT * FROM payments WHERE order_id IN (SELECT id FROM orders WHERE user_id = ?)', [req.session.user.id]);
+        res.json(rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- PROFILE ---
+app.get('/api/profile', async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+    const [rows] = await pool.query('SELECT name, email, phone FROM users WHERE id = ?', [req.session.user.id]);
+    res.json(rows[0]);
+});
+
+app.put('/api/profile/update', async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
+    await pool.query('UPDATE users SET name = ?, phone = ? WHERE id = ?', [req.body.name, req.body.phone, req.session.user.id]);
+    req.session.user.name = req.body.name;
+    res.json({ message: "Profile updated." });
+});
+
+// --- ADMIN ---
+app.put('/api/orders/:id', async (req, res) => {
+    if (!req.session.user || (req.session.user.role !== 'Admin' && req.session.user.role !== 'Staff')) 
+        return res.status(403).json({ error: "Access denied" });
+        
+    await pool.query('UPDATE orders SET order_status = COALESCE(?, order_status), payment_status = COALESCE(?, payment_status) WHERE id = ?', 
+    [req.body.order_status, req.body.payment_status, req.params.id]);
+    res.json({ message: "Order updated." });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

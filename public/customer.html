@@ -3,726 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clara's Best - Customer Portal</title>
+    <title>Clara's Best - Home</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #8B4513;
-            --primary-light: #d2691e;
-            --primary-accent: #fcf8f2;
-            --bg-main: #faf7f5;
+            --primary: #78350f;
+            --primary-light: #b45309;
+            --primary-accent: #fef3c7;
+            --bg-main: #fafaf9;
             --sidebar-bg: #ffffff;
-            --text-dark: #2d1e18;
-            --text-muted: #7c6e65;
-            --border: #e6ded9;
-            --radius: 12px;
-            --shadow: 0 4px 12px rgba(139, 69, 19, 0.04);
-            --transition: all 0.2s ease-in-out;
-            --success: #2e7d32;
-            --warning: #ed6c02;
-            --danger: #d32f2f;
+            --text-dark: #1c1917;
+            --text-muted: #78716c;
+            --border: #e7e5e4;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 20px rgba(120, 53, 15, 0.05);
+            --transition: all 0.25s ease-in-out;
+            --warning: #ca8a04;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; min-height: 100vh; overflow: hidden; color: var(--text-dark); }
-
-        /* --- SIDEBAR STYLING --- */
-        .sidebar {
-            width: 260px;
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 24px 16px;
-            flex-shrink: 0;
-        }
-
-        .sidebar-brand {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 32px;
-            padding-left: 12px;
-            border-left: 4px solid var(--primary-light);
-        }
-
-        .sidebar-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            list-style: none;
-            flex-grow: 1;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .menu-item:hover {
-            color: var(--primary);
-            background-color: var(--primary-accent);
-        }
-
-        .menu-item.active {
-            color: #ffffff;
-            background-color: var(--primary-light);
-        }
-
-        .menu-item.logout-btn {
-            margin-top: auto;
-            color: #d32f2f;
-        }
-        .menu-item.logout-btn:hover {
-            background-color: #ffebee;
-            color: #c62828;
-        }
-
-        /* --- MAIN CONTENT WINDOW --- */
-        .main-content {
-            flex-grow: 1;
-            padding: 40px;
-            overflow-y: auto;
-        }
-
-        .content-header {
-            margin-bottom: 24px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 16px;
-        }
-
-        .content-header h2 {
-            font-size: 24px;
-            color: var(--text-dark);
-        }
-
-        .view-section {
-            display: none;
-            animation: fadeIn 0.2s ease-in-out;
-        }
-
-        .view-section.active-view {
-            display: block;
-        }
-
-        .card { 
-            background: white; 
-            padding: 24px; 
-            border-radius: var(--radius); 
-            border: 1px solid var(--border); 
-            box-shadow: var(--shadow);
-            margin-bottom: 20px; 
-        }
-
-        /* --- CUSTOM FORM COMPONENTS --- */
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px; }
-        .form-control { width: 100%; padding: 10px 14px; font-family: inherit; font-size: 14px; border: 1px solid var(--border); border-radius: 8px; color: var(--text-dark); background-color: #fff; transition: var(--transition); }
-        .form-control:focus { outline: none; border-color: var(--primary-light); }
-
-        /* --- CUSTOM BUTTONS --- */
-        .btn { display: inline-block; padding: 10px 20px; font-size: 14px; font-weight: 600; text-align: center; border: none; border-radius: 8px; cursor: pointer; transition: var(--transition); }
-        .btn-primary { background-color: var(--primary-light); color: white; }
-        .btn-primary:hover { background-color: var(--primary); }
-        .btn-secondary { background-color: transparent; border: 1px solid var(--border); color: var(--text-dark); }
-        .btn-secondary:hover { background-color: var(--primary-accent); }
-
-        /* --- DATA TABLES --- */
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; text-align: left; }
-        .data-table th, .data-table td { padding: 12px; border-bottom: 1px solid var(--border); }
-        .data-table th { background-color: var(--primary-accent); color: var(--primary); font-weight: 600; }
-
-        /* --- UTILITY UI ELEMENTS --- */
-        .badge { display: inline-block; padding: 4px 8px; font-size: 12px; font-weight: 600; border-radius: 6px; text-transform: uppercase; }
-        .badge-pending { background-color: #fff3e0; color: var(--warning); }
-        .badge-approved { background-color: #e8f5e9; color: var(--success); }
-        .badge-rejected { background-color: #ffebee; color: var(--danger); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; min-height: 100vh; color: var(--text-dark); }
         
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
-        .product-card { display: flex; flex-direction: column; height: 100%; }
-        .product-price { font-size: 18px; font-weight: 700; color: var(--primary); margin: 8px 0 16px 0; }
-        
-        .status-banner { background: #fffdfb; border-left: 5px solid var(--primary-light); }
-        .welcome-hero { background: linear-gradient(rgba(45, 30, 24, 0.75), rgba(45, 30, 24, 0.85)); color: #ffffff; padding: 40px; }
-        .home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
-        
-        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
-        .toast { background: #323232; color: white; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; margin-top: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideIn 0.2s ease-out; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; left: 0; top: 0; }
+        .sidebar-brand { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 40px; padding-left: 12px; border-left: 4px solid var(--primary-light); }
+        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; flex-grow: 1; }
+        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-md); transition: var(--transition); }
+        .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); }
+        .menu-item.logout-btn { margin-top: auto; color: #dc2626; }
+        .menu-item.logout-btn:hover { background-color: #fef2f2; }
+
+        .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; max-width: 1200px; width: calc(100% - 280px); }
+        .card { background: white; padding: 32px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 24px; }
+        .home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
+        .welcome-hero { background: linear-gradient(135deg, #451a03 0%, #78350f 100%); color: #ffffff; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 24px; font-size: 14px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; text-decoration: none; transition: var(--transition); }
+        .btn-primary { background-color: white; color: var(--primary); }
+        .badge { display: inline-flex; align-items: center; padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 30px; text-transform: uppercase; background-color: #fef9c3; color: var(--warning); }
     </style>
 </head>
 <body>
-
     <nav class="sidebar">
         <div class="sidebar-brand">Clara's Best</div>
         <ul class="sidebar-menu">
-            <li class="menu-item active" onclick="switchView('home', this)">Home</li>
-            <li class="menu-item" onclick="switchView('products', this)">Products</li>
-            <li class="menu-item" onclick="switchView('cart', this)">Cart</li>
-            <li class="menu-item" onclick="switchView('orders', this)">My Orders</li>
-            <li class="menu-item" onclick="switchView('reservations', this)">My Reservations</li>
-            <li class="menu-item" onclick="switchView('cancellations', this)">Cancellation Requests</li>
-            <li class="menu-item" onclick="switchView('payments', this)">Payments</li>
-            <li class="menu-item" onclick="switchView('profile', this)">Profile</li>
-            <li class="menu-item logout-btn" onclick="handleLogout()">Logout</li>
+            <li><a href="customer.html" class="menu-item active">Home</a></li>
+            <li><a href="products.html" class="menu-item">Products</a></li>
+            <li><a href="cart.html" class="menu-item">Cart</a></li>
+            <li><a href="orders.html" class="menu-item">My Orders</a></li>
+            <li><a href="reservation.html" class="menu-item">My Reservations</a></li>
+            <li><a href="cancellation.html" class="menu-item">Cancellations</a></li>
+            <li><a href="payment.html" class="menu-item">Payments</a></li>
+            <li><a href="profile.html" class="menu-item">Profile</a></li>
+            <li><a href="#" class="menu-item logout-btn" onclick="handleLogout()">Logout</a></li>
         </ul>
     </nav>
 
     <main class="main-content">
+        <div class="content-header" style="margin-bottom: 32px;"><h2>Welcome Back, Ka-Clara! 👋</h2></div>
         
-        <section id="home" class="view-section active-view">
-            <div class="content-header"><h2>Welcome back, Ka-Clara! 👋</h2></div>
-            
-            <div class="card status-banner" id="live-tracker-banner" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                    <div>
-                        <span class="badge badge-pending" style="background-color: rgba(210,105,30,0.1); color: var(--primary-light);">Live Tracker</span>
-                        <h3 style="margin-top: 8px; font-size: 18px;">Your Active Tracking #<span id="track-id">----</span></h3>
-                        <p style="font-size: 14px; color: var(--text-muted); margin-top: 2px;">Fulfillment Status: <strong id="track-status" style="color: var(--primary-light);">Checking status...</strong></p>
-                    </div>
-                    <button class="btn btn-primary" onclick="switchView('orders', document.querySelectorAll('.menu-item')[3])">Open Logs</button>
+        <div class="card id="live-tracker-banner" style="display: none; background: #fffbeb; border-left: 4px solid var(--primary-light);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                <div>
+                    <span class="badge">Live Fulfillment Tracking</span>
+                    <h3 style="margin-top: 8px; font-size: 18px;">Ticket #<span id="track-id">----</span></h3>
+                    <p style="font-size: 14px; color: var(--text-muted); margin-top: 4px;">Status: <strong id="track-status" style="color: var(--primary-light);">Checking...</strong></p>
                 </div>
+                <a href="orders.html" class="btn" style="background-color: var(--primary-light); color: white;">View Logs</a>
             </div>
+        </div>
 
-            <div class="card welcome-hero">
-                <h3 style="font-size: 24px; font-weight: 700; margin-bottom: 8px; color: #fff;">Premium Filipino Kakanin Delicacies</h3>
-                <p style="color: #f5e6d3; max-width: 600px; line-height: 1.5; margin-bottom: 20px;">Freshly steamed daily using heirloom recipes. Craving something sweet, or organizing a special celebration reservation?</p>
-                <div style="display: flex; gap: 12px;">
-                    <button class="btn btn-primary" onclick="switchView('products', document.querySelectorAll('.menu-item')[1])">Order Now</button>
-                    <button class="btn btn-secondary" style="color: white; border-color: white;" onclick="switchView('reservations', document.querySelectorAll('.menu-item')[4])">Book Event</button>
-                </div>
+        <div class="card welcome-hero">
+            <h3 style="font-size: 26px; font-weight: 800; margin-bottom: 12px;">Premium Filipino Kakanin Delicacies</h3>
+            <p style="color: #fef3c7; max-width: 650px; line-height: 1.6; margin-bottom: 24px;">Freshly steamed daily using heirloom recipes. Looking for an immediate treat, or planning catering arrays for an upcoming celebration?</p>
+            <div style="display: flex; gap: 12px;">
+                <a href="products.html" class="btn btn-primary">Order Now</a>
+                <a href="reservation.html" class="btn" style="color: white; border: 1px solid rgba(255,255,255,0.4);">Advanced Booking</a>
             </div>
+        </div>
 
-            <div class="home-grid">
-                <div class="card">
-                    <h4 style="margin-bottom: 12px; color: var(--primary);">Shop Announcements 📢</h4>
-                    <p style="font-size: 13.5px; line-height: 1.5; color: var(--text-muted);">Secure bulk batches up to 30 days ahead under the Reservations module. For GCash payments, please copy the merchant number during checkout and upload your screenshot in the Payments panel.</p>
-                </div>
-                <div class="card">
-                    <h4 style="margin-bottom: 12px; color: var(--primary);">Store Schedule 📋</h4>
-                    <p style="font-size: 13.5px; line-height: 1.5; color: var(--text-muted);"><strong>Hours:</strong> 7:00 AM - 6:00 PM Daily<br><strong>Lead Time:</strong> Standard orders take 1-2 hours. Bulk event reservations require a 24-48 hour buffer layout configuration.</p>
-                </div>
-            </div>
-        </section>
-
-        <section id="products" class="view-section">
-            <div class="content-header"><h2>Our Menu</h2></div>
-            <div class="product-grid" id="products-container">
-                <div class="card product-card">
-                    <h3 style="font-size: 16px;">Special Biko</h3>
-                    <p style="font-size: 13px; color: var(--text-muted); flex-grow: 1; margin-top: 4px;">Traditional sweet sticky rice cake topped with rich latik caramelization layer.</p>
-                    <p class="product-price">₱150.00</p>
-                    <button class="btn btn-primary" onclick="addToCart(1, 'Special Biko', 150.00)">Add to Cart</button>
-                </div>
-                <div class="card product-card">
-                    <h3 style="font-size: 16px;">Kutsinta with Cheese</h3>
-                    <p style="font-size: 13px; color: var(--text-muted); flex-grow: 1; margin-top: 4px;">Soft, chewy steamed cakes served with grated fresh cheese shreds.</p>
-                    <p class="product-price">₱120.00</p>
-                    <button class="btn btn-primary" onclick="addToCart(2, 'Kutsinta with Cheese', 120.00)">Add to Cart</button>
-                </div>
-            </div>
-        </section>
-
-        <section id="cart" class="view-section">
-            <div class="content-header"><h2>Your Shopping Cart</h2></div>
+        <div class="home-grid">
             <div class="card">
-                <table class="data-table" id="cart-table">
-                    <thead>
-                        <tr><th>Product</th><th>Price</th><th>Quantity</th><th>Subtotal</th><th>Action</th></tr>
-                    </thead>
-                    <tbody id="cart-tbody">
-                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Your cart is currently empty. Explore the menu!</td></tr>
-                    </tbody>
-                </table>
-                
-                <div style="text-align: right; margin: 20px 0; font-size: 18px; font-weight: 700;">
-                    Total Amount: <span id="cart-total-display" style="color: var(--primary);">₱0.00</span>
-                </div>
-
-                <div id="checkout-form-area" style="display: none; border-top: 1px solid var(--border); padding-top: 20px;">
-                    <div class="form-group">
-                        <label for="checkout-type">Fulfillment Transaction Module</label>
-                        <select id="checkout-type" class="form-control">
-                            <option value="Order">Standard Purchase Order (Immediate Pickup)</option>
-                            <option value="Reservation">Advanced Scheduled Reservation</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="reservation-date-group" style="display: none;">
-                        <label for="checkout-date">Target Pickup Date & Time</label>
-                        <input type="datetime-local" id="checkout-date" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="checkout-method">Payment Class</label>
-                        <select id="checkout-method" class="form-control">
-                            <option value="Cash">Cash on Pickup</option>
-                            <option value="GCash">GCash Electronic Transfer</option>
-                        </select>
-                    </div>
-                    <div id="checkout-gcash-instructions" class="card" style="display: none; background-color: var(--primary-accent); border-color: var(--primary-light);">
-                        <p style="font-size: 13.5px;"><strong>Official Shop GCash QR:</strong> 0917-673-112 (Janine B.)</p>
-                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Please process your wallet transfer and keep your reference identifier text safely for log verification.</p>
-                    </div>
-                    <div class="form-group">
-                        <label for="checkout-notes">Special Instructions / Cooking Notes</label>
-                        <textarea id="checkout-notes" class="form-control" rows="2" placeholder="e.g., separate the latik container packaging..."></textarea>
-                    </div>
-                    <button class="btn btn-primary" onclick="submitCheckoutPipeline()">Complete Verification Checkout</button>
-                </div>
+                <h4 style="margin-bottom: 12px; color: var(--primary);">Shop Announcements 📢</h4>
+                <p style="font-size: 14px; line-height: 1.6; color: var(--text-muted);">Secure bulk custom culinary batches up to 30 days ahead under our Reservations interface. For GCash transactions, upload your reference receipt screenshot in the Payments tab.</p>
             </div>
-        </section>
-
-        <section id="orders" class="view-section">
-            <div class="content-header"><h2>Standard Purchases</h2></div>
             <div class="card">
-                <table class="data-table">
-                    <thead><tr><th>Order ID</th><th>Date</th><th>Total</th><th>Fulfillment</th><th>Payment</th></tr></thead>
-                    <tbody id="orders-tbody">
-                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No immediate standard orders found.</td></tr>
-                    </tbody>
-                </table>
+                <h4 style="margin-bottom: 12px; color: var(--primary);">Operational Timestamps 📋</h4>
+                <p style="font-size: 14px; line-height: 1.6; color: var(--text-muted);"><strong>Hours:</strong> 7:00 AM - 6:00 PM Daily<br><strong>Fulfillment:</strong> Instant orders process inside 1-2 hours. Large event booking requests require a strict 24-48 hour buffer layout.</p>
             </div>
-        </section>
-
-        <section id="reservations" class="view-section">
-            <div class="content-header"><h2>Advanced Event Bookations</h2></div>
-            <div class="card">
-                <table class="data-table">
-                    <thead><tr><th>Reserve ID</th><th>Target Schedule</th><th>Total Amount</th><th>Fulfillment</th><th>Payment</th></tr></thead>
-                    <tbody id="reservations-tbody">
-                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No advanced reservations logged yet.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section id="cancellations" class="view-section">
-            <div class="content-header"><h2>Manage Order Cancellations</h2></div>
-            <div class="card">
-                <h3 style="font-size: 16px; margin-bottom: 12px;">File New Cancellation Claim</h3>
-                <div class="form-group">
-                    <label for="cancel-target-id">Target Reference Transaction ID</label>
-                    <input type="number" id="cancel-target-id" class="form-control" placeholder="Input Order or Reservation tracking key...">
-                </div>
-                <div class="form-group">
-                    <label for="cancel-reason-text">Explicit Reason for Cancellation</label>
-                    <textarea id="cancel-reason-text" class="form-control" rows="3" placeholder="State your cancellation factors here clearly..."></textarea>
-                </div>
-                <button class="btn btn-primary" onclick="fileCancellationRequest()">Submit Cancellation Claim</button>
-            </div>
-
-            <div class="card">
-                <h3 style="font-size: 16px; margin-bottom: 12px;">Active Cancellation Logs</h3>
-                <table class="data-table">
-                    <thead><tr><th>Transaction ID</th><th>Reason Given</th><th>Review Status</th></tr></thead>
-                    <tbody id="cancellations-tbody">
-                        <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No cancellation logs recorded.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section id="payments" class="view-section">
-            <div class="content-header"><h2>Payment Invoices & Receipts</h2></div>
-            <div class="card">
-                <h3 style="font-size: 16px; margin-bottom: 12px;">Upload GCash Proof of Payment</h3>
-                <div class="form-group">
-                    <label for="payment-order-id">Associated Order / Reservation ID</label>
-                    <input type="number" id="payment-order-id" class="form-control" placeholder="Input order numeric key...">
-                </div>
-                <div class="form-group">
-                    <label for="payment-ref-num">13-Digit GCash Reference Number</label>
-                    <input type="text" id="payment-ref-num" class="form-control" placeholder="e.g., 2039485710293">
-                </div>
-                <div class="form-group">
-                    <label for="payment-file-mock">Upload Receipt Attachment Screenshot</label>
-                    <input type="file" id="payment-file-mock" class="form-control" accept="image/*">
-                </div>
-                <button class="btn btn-primary" onclick="submitGcashReceiptProof()">Verify Transaction Upload</button>
-            </div>
-
-            <div class="card">
-                <h3 style="font-size: 16px; margin-bottom: 12px;">Your Payment History Ledger</h3>
-                <table class="data-table">
-                    <thead><tr><th>Payment ID</th><th>Target Transaction</th><th>Amount</th><th>Method</th><th>Timestamp</th></tr></thead>
-                    <tbody id="payments-history-tbody">
-                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No historical receipts recorded.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section id="profile" class="view-section">
-            <div class="content-header"><h2>Account Details</h2></div>
-            <div class="card">
-                <h3 style="font-size: 16px; margin-bottom: 16px;">Manage Profile Information</h3>
-                <div class="form-group">
-                    <label for="profile-name">Full Name Parameters</label>
-                    <input type="text" id="profile-name" class="form-control" value="Janine Batle">
-                </div>
-                <div class="form-group">
-                    <label for="profile-email">Protected Electronic Mail Address</label>
-                    <input type="email" id="profile-email" class="form-control" value="janinebatle7@gmail.com" readonly style="background-color: #f5f5f5;">
-                </div>
-                <div class="form-group">
-                    <label for="profile-phone">Mobile Contact Route</label>
-                    <input type="text" id="profile-phone" class="form-control" value="0917673112">
-                </div>
-                <button class="btn btn-primary" onclick="saveProfileChanges()">Update Account Matrix</button>
-            </div>
-        </section>
-
+        </div>
     </main>
 
-    <div id="toast-container"></div>
-
     <script>
-        // Global State Variables
-        let userCart = [];
-        let historicalTransactionsList = [];
-
-        // Application Routing System
-        function switchView(viewId, element) {
-            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active-view'));
-            document.querySelectorAll('.menu-item').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(viewId).classList.add('active-view');
-            if (element) element.classList.add('active');
-
-            // Trigger conditional API population handlers
-            if (viewId === 'products') fetchAvailableProducts();
-            if (viewId === 'orders' || viewId === 'reservations' || viewId === 'cancellations') synchronizeTransactionLedgers();
-        }
-
-        // Custom Notification Component
-        function renderUINotification(message) {
-            const container = document.getElementById('toast-container');
-            const element = document.createElement('div');
-            element.className = 'toast';
-            element.innerText = message;
-            container.appendChild(element);
-            setTimeout(() => { element.remove(); }, 3500);
-        }
-
-        // 🛍️ PRODUCTS MODULE
-        async function fetchAvailableProducts() {
-            try {
-                const res = await fetch('/api/products');
-                if (res.ok) {
-                    const products = await res.json();
-                    const grid = document.getElementById('products-container');
-                    if (products.length > 0) grid.innerHTML = '';
-                    
-                    products.forEach(p => {
-                        grid.innerHTML += `
-                            <div class="card product-card">
-                                <h3 style="font-size:16px;">${p.name}</h3>
-                                <p style="font-size:13px; color:var(--text-muted); flex-grow:1; margin-top:4px;">${p.description || 'Delicious freshly homemade local specialty.'}</p>
-                                <p class="product-price">₱${parseFloat(p.price).toFixed(2)}</p>
-                                <button class="btn btn-primary" onclick="addToCart(${p.id}, '${p.name}', ${p.price})">Add to Cart</button>
-                            </div>`;
-                    });
-                }
-            } catch (err) {
-                console.error("Products lookup bypass trace:", err);
-            }
-        }
-
-        // 🛒 CART MANAGEMENT PIPELINE
-        function addToCart(productId, name, price) {
-            const trackingIndex = userCart.findIndex(item => item.product_id === productId);
-            if (trackingIndex > -1) {
-                userCart[trackingIndex].quantity += 1;
-            } else {
-                userCart.push({ product_id: productId, name, price: parseFloat(price), quantity: 1 });
-            }
-            renderActiveCartUI();
-            renderUINotification(`${name} appended to cart allocation.`);
-        }
-
-        function mutateCartQuantity(productId, modifier) {
-            const index = userCart.findIndex(item => item.product_id === productId);
-            if (index > -1) {
-                userCart[index].quantity += modifier;
-                if (userCart[index].quantity <= 0) userCart.splice(index, 1);
-            }
-            renderActiveCartUI();
-        }
-
-        function renderActiveCartUI() {
-            const tbody = document.getElementById('cart-tbody');
-            const formArea = document.getElementById('checkout-form-area');
-            const totalDisplay = document.getElementById('cart-total-display');
-            
-            if (userCart.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Your cart is currently empty. Explore the menu!</td></tr>`;
-                formArea.style.display = 'none';
-                totalDisplay.innerText = "₱0.00";
-                return;
-            }
-
-            tbody.innerHTML = '';
-            formArea.style.display = 'block';
-            let calculatedTotal = 0;
-
-            userCart.forEach(item => {
-                const itemSubtotal = item.price * item.quantity;
-                calculatedTotal += itemSubtotal;
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${item.name}</strong></td>
-                        <td>₱${item.price.toFixed(2)}</td>
-                        <td>
-                            <button class="btn btn-secondary" style="padding: 2px 8px;" onclick="mutateCartQuantity(${item.product_id}, -1)">-</button>
-                            <span style="margin: 0 10px; font-weight:600;">${item.quantity}</span>
-                            <button class="btn btn-secondary" style="padding: 2px 8px;" onclick="mutateCartQuantity(${item.product_id}, 1)">+</button>
-                        </td>
-                        <td>₱${itemSubtotal.toFixed(2)}</td>
-                        <td><button class="btn btn-secondary" style="color:var(--danger); padding:4px 8px;" onclick="mutateCartQuantity(${item.product_id}, -${item.quantity})">Remove</button></td>
-                    </tr>`;
-            });
-
-            totalDisplay.innerText = `₱${calculatedTotal.toFixed(2)}`;
-        }
-
-        // Toggle checkout date based on transaction choices
-        document.getElementById('checkout-type').addEventListener('change', (e) => {
-            document.getElementById('reservation-date-group').style.display = e.target.value === 'Reservation' ? 'block' : 'none';
-        });
-
-        // Toggle GCash UI element visibility rules
-        document.getElementById('checkout-method').addEventListener('change', (e) => {
-            document.getElementById('checkout-gcash-instructions').style.display = e.target.value === 'GCash' ? 'block' : 'none';
-        });
-
-        async function submitCheckoutPipeline() {
-            const transactionType = document.getElementById('checkout-type').value;
-            const targetPaymentMethod = document.getElementById('checkout-method').value;
-            const contextNotes = document.getElementById('checkout-notes').value;
-            const targetDateInput = document.getElementById('checkout-date').value;
-
-            if (transactionType === 'Reservation' && !targetDateInput) {
-                return renderUINotification("Please identify structural scheduling parameters for reservations.");
-            }
-
-            const payload = {
-                items: userCart,
-                type: transactionType,
-                payment_method: targetPaymentMethod,
-                notes: contextNotes,
-                pickup_date_time: transactionType === 'Reservation' ? targetDateInput.replace('T', ' ') + ':00' : new Date().toISOString().slice(0, 19).replace('T', ' ')
-            };
-
-            try {
-                const res = await fetch('/api/orders', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (res.ok) {
-                    renderUINotification("Transaction completed successfully!");
-                    userCart = [];
-                    renderActiveCartUI();
-                    switchView(transactionType === 'Reservation' ? 'reservations' : 'orders', document.querySelectorAll('.menu-item')[transactionType === 'Reservation' ? 4 : 3]);
-                    fetchLatestTrackingState();
-                } else {
-                    const data = await res.json();
-                    renderUINotification(data.error || "Fulfillment compilation hit an issue.");
-                }
-            } catch (err) {
-                renderUINotification("Network channel handshake timed out.");
-            }
-        }
-
-        // 📊 ORDER, RESERVATION, & CANCELLATION ENGINE SYNCHRONIZATION
-        async function synchronizeTransactionLedgers() {
-            try {
-                const res = await fetch('/api/orders');
-                if (res.ok) {
-                    historicalTransactionsList = await res.json();
-                    
-                    const ordersTbody = document.getElementById('orders-tbody');
-                    const reservationsTbody = document.getElementById('reservations-tbody');
-                    const cancellationsTbody = document.getElementById('cancellations-tbody');
-
-                    ordersTbody.innerHTML = '';
-                    reservationsTbody.innerHTML = '';
-                    cancellationsTbody.innerHTML = '';
-
-                    let orderCount = 0, reserveCount = 0, cancelCount = 0;
-
-                    historicalTransactionsList.forEach(t => {
-                        // Render standard immediate orders array row components
-                        if (t.type === 'Order') {
-                            orderCount++;
-                            ordersTbody.innerHTML += `
-                                <tr>
-                                    <td><strong>#${t.id}</strong></td>
-                                    <td>${new Date(t.created_at || Date.now()).toLocaleDateString()}</td>
-                                    <td>₱${parseFloat(t.total_amount || 0).toFixed(2)}</td>
-                                    <td><span class="badge badge-pending">${t.order_status || 'Pending'}</span></td>
-                                    <td><span class="badge ${t.payment_status === 'Paid' ? 'badge-approved' : 'badge-pending'}">${t.payment_status || 'Unpaid'}</span></td>
-                                </tr>`;
-                        } 
-                        // Render reservation row configurations
-                        else if (t.type === 'Reservation') {
-                            reserveCount++;
-                            reservationsTbody.innerHTML += `
-                                <tr>
-                                    <td><strong>#${t.id}</strong></td>
-                                    <td>${t.pickup_date_time || 'TBD'}</td>
-                                    <td>₱${parseFloat(t.total_amount || 0).toFixed(2)}</td>
-                                    <td><span class="badge badge-pending">${t.order_status || 'Pending'}</span></td>
-                                    <td><span class="badge ${t.payment_status === 'Paid' ? 'badge-approved' : 'badge-pending'}">${t.payment_status || 'Unpaid'}</span></td>
-                                </tr>`;
-                        }
-
-                        // Render active user cancellations matrix lists 
-                        if (t.cancellation_status && t.cancellation_status !== 'None') {
-                            cancelCount++;
-                            cancellationsTbody.innerHTML += `
-                                <tr>
-                                    <td><strong>#${t.id}</strong></td>
-                                    <td>${t.cancellation_reason || 'No text reasons details logged.'}</td>
-                                    <td><span class="badge badge-${t.cancellation_status.toLowerCase()}">${t.cancellation_status}</span></td>
-                                </tr>`;
-                        }
-                    });
-
-                    if (orderCount === 0) ordersTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No immediate standard orders found.</td></tr>`;
-                    if (reserveCount === 0) reservationsTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No advanced reservations logged yet.</td></tr>`;
-                    if (cancelCount === 0) cancellationsTbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No cancellation logs recorded.</td></tr>`;
-                }
-            } catch (err) {
-                console.error("Ledger query tracking error exception context:", err);
-            }
-        }
-
-        // 🚫 CANCELLATION REQUEST OPERATIONS
-        async function fileCancellationRequest() {
-            const targetId = document.getElementById('cancel-target-id').value;
-            const claimReason = document.getElementById('cancel-reason-text').value;
-
-            if (!targetId || !claimReason) {
-                return renderUINotification("Please fill out all required validation constraints.");
-            }
-
-            try {
-                const res = await fetch(`/api/orders/${targetId}/cancel`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ reason: claimReason })
-                });
-
-                if (res.ok) {
-                    renderUINotification("Cancellation claim submitted successfully for evaluation.");
-                    document.getElementById('cancel-target-id').value = '';
-                    document.getElementById('cancel-reason-text').value = '';
-                    synchronizeTransactionLedgers();
-                    fetchLatestTrackingState();
-                } else {
-                    const data = await res.json();
-                    renderUINotification(data.error || "Could not process verification steps.");
-                }
-            } catch (err) {
-                renderUINotification("Communication routing endpoint fault.");
-            }
-        }
-
-        // 💳 GCASH ATTACHMENT & LEDGER LEDGER MODULE
-        async function submitGcashReceiptProof() {
-            const targetId = document.getElementById('payment-order-id').value;
-            const refString = document.getElementById('payment-ref-num').value;
-            const fileCheck = document.getElementById('payment-file-mock').value;
-
-            if (!targetId || !refString || !fileCheck) {
-                return renderUINotification("All tracking parameters must be completed.");
-            }
-
-            try {
-                const res = await fetch(`/api/orders/${targetId}/payment`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ reference_number: refString, proof_image_name: 'receipt_' + targetId + '.jpg' })
-                });
-
-                if (res.ok) {
-                    renderUINotification("GCash digital voucher loaded for validation checking.");
-                    
-                    // Manually append transaction to historical display tables components layout
-                    const historicalTbody = document.getElementById('payments-history-tbody');
-                    if (historicalTbody.innerText.includes("No historical receipts")) historicalTbody.innerHTML = '';
-                    
-                    historicalTbody.innerHTML += `
-                        <tr>
-                            <td><strong>TXN-${Math.floor(Math.random() * 9000) + 1000}</strong></td>
-                            <td>#${targetId}</td>
-                            <td>₱Verified Amount</td>
-                            <td><span class="badge badge-approved">GCash</span></td>
-                            <td>Just Now</td>
-                        </tr>`;
-
-                    document.getElementById('payment-order-id').value = '';
-                    document.getElementById('payment-ref-num').value = '';
-                    document.getElementById('payment-file-mock').value = '';
-                    synchronizeTransactionLedgers();
-                } else {
-                    renderUINotification("Failed to update receipt registration rows.");
-                }
-            } catch (err) {
-                renderUINotification("Network link transport issue.");
-            }
-        }
-
-        // 👤 PROFILE MANIPULATION FORMS
-        function saveProfileChanges() {
-            const targetName = document.getElementById('profile-name').value;
-            const targetPhone = document.getElementById('profile-phone').value;
-
-            if (!targetName || !targetPhone) {
-                return renderUINotification("Name and phone targets must contain valid structural characters.");
-            }
-            renderUINotification("Account identity matrix configurations updated safely.");
-        }
-
-        // 🏠 TRACKER SYNCHRONIZATION FOR PORTAL HOME SCREEN
         async function fetchLatestTrackingState() {
             try {
                 const res = await fetch('/api/orders');
                 if (res.ok) {
-                    const trackingData = await res.json();
-                    const liveTracker = trackingData.find(txn => txn.order_status !== 'Completed' && txn.order_status !== 'Cancelled');
-                    
-                    const banner = document.getElementById('live-tracker-banner');
-                    if (liveTracker) {
-                        banner.style.display = 'block';
-                        document.getElementById('track-id').innerText = liveTracker.id;
-                        document.getElementById('track-status').innerText = `${liveTracker.type} - ${liveTracker.order_status}`;
-                    } else {
-                        banner.style.display = 'none';
+                    const data = await res.json();
+                    const live = data.find(txn => txn.order_status !== 'Completed' && txn.order_status !== 'Cancelled');
+                    if (live) {
+                        document.getElementById('live-tracker-banner').style.display = 'block';
+                        document.getElementById('track-id').innerText = live.id;
+                        document.getElementById('track-status').innerText = `${live.type} - [${live.order_status}]`;
                     }
                 }
-            } catch (err) {
-                console.error("Dashboard engine failed parsing runtime metrics layout:", err);
-            }
+            } catch (err) { console.error(err); }
         }
-
-        // Initial setup on window load execution
-        window.addEventListener('DOMContentLoaded', () => {
-            fetchLatestTrackingState();
-        });
+        function handleLogout() { if(confirm("Log out?")) window.location.href = '/api/logout'; }
+        window.addEventListener('DOMContentLoaded', fetchLatestTrackingState);
     </script>
 </body>
 </html>
