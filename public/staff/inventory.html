@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .low-stock { color: #d9534f; font-weight: bold; }
+        .stock-badge { padding: 4px 10px; border-radius: 12px; background: #f0f0f0; }
+        .refresh-btn { background: #555; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Staff Portal</h2>
+        <a href="staff.html" class="menu-item">Dashboard</a>
+        <a href="orders.html" class="menu-item">Orders</a>
+        <a href="reservations.html" class="menu-item">Reservations</a>
+        <a href="walk.html" class="menu-item">Walk-in Orders</a>
+        <a href="inventory.html" class="menu-item active">Inventory</a>
+        <a href="payment.html" class="menu-item">Payments</a>
+        <a href="#" onclick="logout()" class="menu-item" style="color:#ff8a8a; margin-top: 50px;">Logout</a>
+    </div>
+
+    <main class="content">
+        <h1>Stock & Raw Ingredients</h1>
+        <button class="refresh-btn" onclick="loadInventory()">Refresh Inventory</button>
+        <div class="card">
+            <table id="inv-table">
+                <thead>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Stock Quantity</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="inv-body">
+                    <tr><td colspan="3">Loading inventory...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        async function loadInventory() {
+            try {
+                const res = await fetch('/api/products');
+                const data = await res.json();
+                const invBody = document.getElementById('inv-body');
+                
+                invBody.innerHTML = data.map(p => {
+                    const isLow = p.stock_quantity < 5;
+                    return `
+                        <tr>
+                            <td>${p.name}</td>
+                            <td><span class="stock-badge">${p.stock_quantity}</span></td>
+                            <td class="${isLow ? 'low-stock' : ''}">
+                                ${isLow ? '⚠️ Low Stock' : '✅ Sufficient'}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error("Error loading inventory:", err);
+            }
+        }
+
+        async function logout() {
+            await fetch('/api/logout');
+            window.location.href = '/login.html';
+        }
+
+        window.onload = loadInventory;
+    </script>
+</body>
+</html>

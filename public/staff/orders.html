@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders Queue - Staff</title>
+    <link rel="stylesheet" href="../css/style.css"> 
+    <style>
+        .btn-update { background-color: var(--primary); color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn-update:hover { background-color: #a0522d; }
+        
+        /* Dynamic Status Colors */
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-prepared { background: #d1ecf1; color: #0c5460; }
+        .status-ready { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Staff Portal</h2>
+        <a href="staff.html" class="menu-item">Dashboard</a>
+        <a href="orders.html" class="menu-item active">Orders</a>
+        <a href="reservations.html" class="menu-item">Reservations</a>
+        <a href="walk.html" class="menu-item">Walk-in Orders</a>
+        <a href="inventory.html" class="menu-item">Inventory</a>
+        <a href="payment.html" class="menu-item">Payments</a>
+        <a href="#" onclick="logout()" class="menu-item" style="color:#ff8a8a; margin-top: 50px;">Logout</a>
+    </div>
+
+    <main class="content">
+        <h1>Orders Queue</h1>
+        <div class="card">
+            <table id="orders-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-body">
+                    <tr><td colspan="5">Loading orders...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        async function loadData() {
+            try {
+                const res = await fetch('/api/orders');
+                const orders = await res.json();
+                const tableBody = document.getElementById('orders-body');
+
+                if (orders.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5">No active orders found.</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = orders.map(o => {
+                    // Determine CSS class based on status
+                    const statusClass = `status-${o.order_status.toLowerCase()}`;
+                    return `
+                        <tr>
+                            <td>#${o.id}</td>
+                            <td>${o.customer_name}</td>
+                            <td>₱${parseFloat(o.total_price).toLocaleString()}</td>
+                            <td><span class="status-badge ${statusClass}">${o.order_status}</span></td>
+                            <td>
+                                <button class="btn-update" onclick="updateStatus(${o.id})">Update Status</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error("Error loading data:", err);
+            }
+        }
+
+        async function updateStatus(id) {
+            const newStatus = prompt("Enter new status (Pending, Prepared, Ready, Completed, Cancelled):");
+            if (!newStatus) return;
+
+            const res = await fetch(`/api/orders/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_status: newStatus })
+            });
+
+            if (res.ok) {
+                loadData(); // Auto-refresh table after update
+            } else {
+                alert("Failed to update status.");
+            }
+        }
+
+        async function logout() {
+            await fetch('/api/logout');
+            window.location.href = '/login.html';
+        }
+
+        // Load data on start
+        window.onload = loadData;
+        
+        // Optional: Auto-refresh every 30 seconds
+        setInterval(loadData, 30000);
+    </script>
+</body>
+</html>

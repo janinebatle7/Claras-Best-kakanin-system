@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard - Clara's Best</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 25px; border-radius: 12px; border: 1px solid #e6ded9; text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: bold; color: var(--primary); display: block; }
+        .stat-label { color: #666; font-size: 0.9rem; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Staff Portal</h2>
+        <a href="staff.html" class="menu-item active">Dashboard</a>
+        <a href="orders.html" class="menu-item">Orders</a>
+        <a href="reservations.html" class="menu-item">Reservations</a>
+        <a href="walk.html" class="menu-item">Walk-in Orders</a>
+        <a href="inventory.html" class="menu-item">Inventory</a>
+        <a href="payment.html" class="menu-item">Payments</a>
+        <a href="#" onclick="logout()" class="menu-item" style="color:#ff8a8a; margin-top: 50px;">Logout</a>
+    </div>
+
+    <main class="content">
+        <h1>Dashboard Overview</h1>
+        
+        <div class="stats-container">
+            <div class="stat-card">
+                <span class="stat-label">Total Revenue</span>
+                <span class="stat-value" id="total-revenue">₱0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Pending Orders</span>
+                <span class="stat-value" id="pending-orders">0</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Quick Actions</h3>
+            <p>Welcome back! You can manage your daily operations using the sidebar navigation. Check the pending orders queue or verify incoming payments to keep the system up to date.</p>
+        </div>
+    </main>
+
+    <script>
+        // Fetch stats from the server
+        async function loadDashboardStats() {
+            try {
+                const res = await fetch('/api/admin/sales');
+                const data = await res.json();
+                
+                document.getElementById('total-revenue').innerText = `₱${parseFloat(data.totalSales).toLocaleString()}`;
+                document.getElementById('pending-orders').innerText = data.pendingOrders;
+            } catch (err) {
+                console.error("Failed to load dashboard stats:", err);
+            }
+        }
+
+        async function logout() { 
+            await fetch('/api/logout'); 
+            window.location.href = '/login.html'; 
+        }
+
+        // Run on load
+        window.onload = loadDashboardStats;
+    </script>
+</body>
+</html>

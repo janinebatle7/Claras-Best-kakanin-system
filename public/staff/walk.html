@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walk-in Orders - Staff</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .btn-submit { background: var(--primary); color: white; padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; }
+        .btn-submit:hover { background: #a0522d; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Staff Portal</h2>
+        <a href="staff.html" class="menu-item">Dashboard</a>
+        <a href="orders.html" class="menu-item">Orders</a>
+        <a href="reservations.html" class="menu-item">Reservations</a>
+        <a href="walk.html" class="menu-item active">Walk-in Orders</a>
+        <a href="inventory.html" class="menu-item">Inventory</a>
+        <a href="payment.html" class="menu-item">Payments</a>
+        <a href="#" onclick="logout()" class="menu-item" style="color:#ff8a8a; margin-top: 50px;">Logout</a>
+    </div>
+
+    <main class="content">
+        <h1>Process Walk-in Order</h1>
+        <div class="card">
+            <form id="walk-in-form">
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input type="text" id="cust-name" placeholder="Enter customer name" required>
+                </div>
+                <div class="form-group">
+                    <label>Order Amount (₱)</label>
+                    <input type="number" id="order-total" placeholder="0.00" step="0.01" required>
+                </div>
+                <button type="submit" class="btn-submit">Process Walk-in Order</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('walk-in-form').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const payload = {
+                customer_name: document.getElementById('cust-name').value,
+                total_price: document.getElementById('order-total').value,
+                order_type: 'Walk-in',
+                order_status: 'Completed' // Walk-ins are usually immediate
+            };
+
+            try {
+                const res = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    alert("Walk-in order processed successfully!");
+                    document.getElementById('walk-in-form').reset();
+                } else {
+                    alert("Failed to process order. Please try again.");
+                }
+            } catch (err) {
+                console.error("Error submitting order:", err);
+            }
+        };
+
+        async function logout() {
+            await fetch('/api/logout');
+            window.location.href = '/login.html';
+        }
+    </script>
+</body>
+</html>

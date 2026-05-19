@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservations - Staff</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .btn-action { background-color: var(--primary); color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn-action:hover { background-color: #a0522d; }
+        
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Staff Portal</h2>
+        <a href="staff.html" class="menu-item">Dashboard</a>
+        <a href="orders.html" class="menu-item">Orders</a>
+        <a href="reservations.html" class="menu-item active">Reservations</a>
+        <a href="walk.html" class="menu-item">Walk-in Orders</a>
+        <a href="inventory.html" class="menu-item">Inventory</a>
+        <a href="payment.html" class="menu-item">Payments</a>
+        <a href="#" onclick="logout()" class="menu-item" style="color:#ff8a8a; margin-top: 50px;">Logout</a>
+    </div>
+
+    <main class="content">
+        <h1>Advance Reservations</h1>
+        <div class="card">
+            <table id="res-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Pickup Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="res-body">
+                    <tr><td colspan="5">Loading reservations...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        async function loadReservations() {
+            try {
+                const res = await fetch('/api/reservations');
+                const data = await res.json();
+                const tbody = document.getElementById('res-body');
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5">No pending reservations found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(r => {
+                    const statusClass = `status-${r.status.toLowerCase()}`;
+                    return `
+                        <tr>
+                            <td>#${r.id}</td>
+                            <td>${r.customer_name}</td>
+                            <td>${new Date(r.pickup_date).toLocaleDateString()}</td>
+                            <td><span class="status-badge ${statusClass}">${r.status}</span></td>
+                            <td>
+                                <button class="btn-action" onclick="updateReservation(${r.id})">Update</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error("Error loading reservations:", err);
+            }
+        }
+
+        async function updateReservation(id) {
+            const newStatus = prompt("Update Reservation Status (Pending, Confirmed, Cancelled):");
+            if (!newStatus) return;
+
+            const res = await fetch(`/api/reservations/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (res.ok) {
+                alert("Status updated successfully!");
+                loadReservations();
+            } else {
+                alert("Failed to update status.");
+            }
+        }
+
+        async function logout() {
+            await fetch('/api/logout');
+            window.location.href = '/login.html';
+        }
+
+        window.onload = loadReservations;
+        // Auto-refresh every 60 seconds
+        setInterval(loadReservations, 60000);
+    </script>
+</body>
+</html>

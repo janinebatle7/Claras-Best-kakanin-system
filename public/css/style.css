@@ -1,0 +1,208 @@
+/* public/css/style.css */
+
+/* 1. Modern Color Palette & Design System */
+:root {
+    /* Brand Colors */
+    --sidebar-bg: #0f172a;    /* Deeper, premium slate */
+    --accent: #f59e0b;        /* Vibrant Amber Gold */
+    --accent-hover: #d97706;  /* Richer Amber for interactive states */
+    --bg-color: #f8fafc;      /* Crisp, clean slate-gray backdrop */
+    
+    /* Text Colors */
+    --text-main: #0f172a;     /* Deep slate for high legibility */
+    --text-muted: #64748b;    /* Perfect contrast for captions/subtitles */
+    --text-sidebar: #94a3b8;  /* Readable muted tone for dark backgrounds */
+    
+    /* Interface & Elevation */
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;  /* Subtle, crisp dividers */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;       /* Softer, modern corners */
+    
+    /* Soft, realistic depth shadows */
+    --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 
+                   0 2px 6px -1px rgba(15, 23, 42, 0.03);
+    
+    /* Smooth, consistent animations */
+    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 2. Global Resets & Typography */
+* { 
+    box-sizing: border-box; 
+    margin: 0;
+    padding: 0;
+}
+
+body { 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+    display: flex; 
+    height: 100vh;
+    background: var(--bg-color); 
+    color: var(--text-main); 
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden; /* Prevents double scrollbars with the content area */
+}
+
+/* 3. Sidebar Layout & Navigation */
+.sidebar { 
+    width: 280px; 
+    background: var(--sidebar-bg); 
+    color: white; 
+    height: 100vh; 
+    padding: 32px 24px; 
+    flex-shrink: 0; 
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar h2 { 
+    font-size: 0.85rem; 
+    color: var(--text-sidebar); 
+    margin-bottom: 32px; 
+    text-transform: uppercase; 
+    letter-spacing: 1.5px; 
+    font-weight: 700;
+}
+
+.menu-item { 
+    display: flex;
+    align-items: center;
+    padding: 12px 16px; 
+    color: #cbd5e1; 
+    text-decoration: none; 
+    border-radius: var(--radius-md); 
+    margin-bottom: 6px; 
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all var(--transition-fast); 
+}
+
+/* Menu Hover State */
+.menu-item:hover { 
+    background: rgba(255, 255, 255, 0.05); 
+    color: white; 
+}
+
+/* Menu Active State - Uses a cohesive background with an amber accent indicator */
+.menu-item.active { 
+    background: rgba(245, 158, 11, 0.15); 
+    color: var(--accent); 
+    font-weight: 600; 
+    position: relative;
+}
+
+/* Optional: Small accent dot/line next to active item */
+.menu-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 25%;
+    height: 50%;
+    width: 4px;
+    background: var(--accent);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* 4. Main Content Area */
+.content { 
+    padding: 40px; 
+    flex-grow: 1; 
+    overflow-y: auto; 
+    height: 100vh;
+}
+
+/* 5. Modern Card Component */
+.card { 
+    background: var(--card-bg); 
+    padding: 32px; 
+    border-radius: var(--radius-lg); 
+    box-shadow: var(--card-shadow); 
+    border: 1px solid var(--border-color); 
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+/* Subtle lift on hover makes cards feel interactive */
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 
+                0 4px 10px -2px rgba(15, 23, 42, 0.04);
+}
+
+/* 6. Clean, Readable Table Styling */
+table { 
+    width: 100%; 
+    border-collapse: separate; /* Required for rounded corners inside tables */
+    border-spacing: 0;
+    margin-top: 24px; 
+}
+
+th { 
+    background: #f1f5f9; 
+    padding: 16px 20px; 
+    text-align: left; 
+    color: var(--text-muted); 
+    font-size: 0.8rem; 
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Rounds the top-left and top-right corners of the table header */
+th:first-child { border-top-left-radius: var(--radius-md); }
+th:last-child { border-top-right-radius: var(--radius-md); }
+
+td { 
+    padding: 18px 20px; 
+    border-bottom: 1px solid var(--border-color); 
+    font-size: 0.95rem;
+    color: var(--text-main);
+    transition: background var(--transition-fast);
+}
+
+/* Row highlighting for scanning large data sets */
+tr:hover td {
+    background: #f8fafc;
+}
+
+/* Removes bottom border from the last row to look clean */
+tr:last-child td {
+    border-bottom: none;
+}
+
+/* 7. Premium Interactive Buttons */
+button { 
+    background: var(--sidebar-bg); 
+    color: white; 
+    padding: 11px 20px; 
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid transparent; 
+    border-radius: var(--radius-md); 
+    cursor: pointer; 
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all var(--transition-fast); 
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+button:hover { 
+    background: var(--accent); 
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
+/* Subtle feedback when clicked */
+button:active {
+    transform: scale(0.98);
+}
+
+/* Focus styles for accessibility */
+button:focus-visible, .menu-item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}

@@ -6,25 +6,212 @@
     <title>Clara's Best - Login / Register</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #8B4513; --primary-light: #d2691e; --primary-accent: #fcf8f2; --text-main: #2d1e18; --text-muted: #7c6e65; --surface: #ffffff; --border: #e6ded9; --radius: 12px; --shadow: 0 10px 30px rgba(139, 69, 19, 0.08); }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient(135deg, #fcf8f2 0%, #f5e6d3 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: var(--text-main); }
-        .auth-container { background: var(--surface); padding: 40px; border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-width: 420px; border-top: 6px solid var(--primary); }
-        .brand-header { text-align: center; margin-bottom: 28px; }
-        .brand-header h1 { font-size: 24px; font-weight: 700; color: var(--primary); }
-        .tabs { display: flex; margin-bottom: 28px; background: var(--primary-accent); padding: 6px; border-radius: 8px; border: 1px solid var(--border); }
-        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: 600; font-size: 14px; color: var(--text-muted); border-radius: 6px; transition: 0.3s; }
-        .tab.active { color: var(--primary); background: var(--surface); box-shadow: 0 2px 8px rgba(139, 69, 19, 0.1); }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; }
-        input { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; }
-        input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 4px rgba(210, 105, 30, 0.15); }
-        button { width: 100%; background: var(--primary-light); color: white; border: none; padding: 14px; font-size: 15px; cursor: pointer; border-radius: 8px; font-weight: 700; transition: 0.3s; }
-        button:hover:not(:disabled) { background: var(--primary); }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        .hidden { display: none; }
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 1000; }
-        .toast { background: #333; color: white; padding: 12px 24px; border-radius: 8px; margin-bottom: 10px; font-size: 14px; }
+        /* Modern Premium Tropical & Glassmorphism Design System */
+        :root { 
+            --primary: #5c2c06;         /* Deep Roast Espresso Brown */
+            --primary-light: #8b4513;   /* Warm Saddle Brown */
+            --accent: #e67e22;          /* Toasted Sweet Rice Caramel */
+            --text-main: #231204;       /* High contrast dark espresso */
+            --text-muted: #594636;      /* Muted earth tone */
+            
+            /* Glassmorphism values */
+            --glass-bg: rgba(255, 255, 255, 0.88);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --surface: #ffffff; 
+            --border: #e6ded9; 
+            
+            --radius-md: 10px;
+            --radius-lg: 20px; 
+            --shadow-lux: 0 20px 50px rgba(44, 23, 6, 0.25);
+            --transition-smooth: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            color: var(--text-main); 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 20px; 
+            -webkit-font-smoothing: antialiased;
+
+            /* Full-screen rich native heritage culinary backdrop */
+            background-image: linear-gradient(rgba(44, 23, 6, 0.45), rgba(44, 23, 6, 0.3)), 
+                              url('https://images.unsplash.com/photo-1621263764928-df1444c5e859?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        /* Frosted Glassmorphism Container Card */
+        .auth-container { 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 45px 35px; 
+            border-radius: var(--radius-lg); 
+            box-shadow: var(--shadow-lux); 
+            width: 100%; 
+            max-width: 440px; 
+            border: 1px solid var(--glass-border);
+            border-top: 6px solid var(--primary-light); 
+            transition: transform var(--transition-smooth);
+        }
+
+        .brand-header { 
+            text-align: center; 
+            margin-bottom: 32px; 
+        }
+
+        .brand-header h1 { 
+            font-size: 28px; 
+            font-weight: 800; 
+            color: var(--primary); 
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .brand-header p {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Seamless Tab Navigation Toggles */
+        .tabs { 
+            display: flex; 
+            margin-bottom: 32px; 
+            background: rgba(92, 44, 6, 0.06); 
+            padding: 6px; 
+            border-radius: var(--radius-md); 
+            border: 1px solid rgba(92, 44, 6, 0.08); 
+        }
+
+        .tab { 
+            flex: 1; 
+            text-align: center; 
+            padding: 12px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            font-size: 14px; 
+            color: var(--text-muted); 
+            border-radius: 8px; 
+            transition: all var(--transition-smooth); 
+        }
+
+        .tab:hover:not(.active) {
+            color: var(--primary);
+        }
+
+        .tab.active { 
+            color: var(--primary); 
+            background: var(--surface); 
+            box-shadow: 0 4px 12px rgba(92, 44, 6, 0.1); 
+        }
+
+        /* High Contrast Clean Input Panels */
+        .form-group { 
+            margin-bottom: 24px; 
+        }
+
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 700; 
+            font-size: 13px; 
+            color: var(--primary);
+            letter-spacing: 0.2px;
+        }
+
+        input { 
+            width: 100%; 
+            padding: 14px 18px; 
+            border: 1px solid var(--border); 
+            border-radius: var(--radius-md); 
+            font-size: 14px; 
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.85);
+            outline: none; 
+            color: var(--text-main);
+            transition: all var(--transition-smooth);
+        }
+
+        input:focus { 
+            border-color: var(--accent); 
+            background: var(--surface);
+            box-shadow: 0 0 0 4px rgba(230, 126, 34, 0.15); 
+        }
+
+        /* Tactile Action Submit Buttons */
+        button { 
+            width: 100%; 
+            background: var(--accent); 
+            color: white; 
+            border: none; 
+            padding: 16px; 
+            font-size: 15px; 
+            cursor: pointer; 
+            border-radius: var(--radius-md); 
+            font-weight: 700; 
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 12px rgba(230, 126, 34, 0.2);
+            transition: all var(--transition-smooth); 
+        }
+
+        button:hover:not(:disabled) { 
+            background: var(--accent-hover, #d35400); 
+            box-shadow: 0 6px 20px rgba(211, 84, 0, 0.3);
+        }
+
+        button:active:not(:disabled) {
+            transform: scale(0.99);
+        }
+
+        button:disabled { 
+            background: #cbd5e1; 
+            color: #64748b;
+            cursor: not-allowed; 
+            box-shadow: none;
+        }
+
+        .hidden { 
+            display: none; 
+        }
+
+        /* Clean Structural Dynamic Notification Modals */
+        .toast-container { 
+            position: fixed; 
+            top: 24px; 
+            right: 24px; 
+            z-index: 1000; 
+            max-width: 350px;
+        }
+
+        .toast { 
+            padding: 16px 24px; 
+            border-radius: var(--radius-md); 
+            margin-bottom: 12px; 
+            font-size: 14px; 
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            border-left: 4px solid transparent;
+            animation: slideIn var(--transition-smooth) forwards;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -43,32 +230,67 @@
     </div>
 
     <form id="login-form" onsubmit="handleLogin(event)">
-        <div class="form-group"><label>Email Address</label><input type="email" id="login-email" required></div>
-        <div class="form-group"><label>Password</label><input type="password" id="login-password" required></div>
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="login-email" required placeholder="name@example.com">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="login-password" required placeholder="••••••••">
+        </div>
         <button type="submit" id="login-btn">Sign In</button>
     </form>
 
     <form id="signup-form" class="hidden" onsubmit="handleSignup(event)">
-        <div class="form-group"><label>Full Name</label><input type="text" id="signup-name" required></div>
-        <div class="form-group"><label>Email Address</label><input type="email" id="signup-email" required></div>
-        <div class="form-group"><label>Mobile Number</label><input type="tel" id="signup-phone" required></div>
-        <div class="form-group"><label>Password</label><input type="password" id="signup-password" required></div>
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="signup-name" required placeholder="Juan Dela Cruz">
+        </div>
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="signup-email" required placeholder="juan@example.com">
+        </div>
+        <div class="form-group">
+            <label>Mobile Number</label>
+            <input type="tel" id="signup-phone" required placeholder="0917XXXXXXX">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="signup-password" required placeholder="••••••••">
+        </div>
         <button type="submit" id="signup-btn">Create Account</button>
     </form>
 </div>
 
 <script>
+    // System message rendering pipeline
     function showToast(message, isSuccess = true) {
         const wrapper = document.getElementById('toast-wrapper');
         const toast = document.createElement('div');
         toast.className = 'toast';
-        toast.style.background = isSuccess ? '#e8f5e9' : '#ffebee';
-        toast.style.color = isSuccess ? '#1b5e20' : '#c62828';
+        
+        if (isSuccess) {
+            toast.style.background = '#f0fdf4';
+            toast.style.color = '#166534';
+            toast.style.borderLeftColor = '#22c55e';
+        } else {
+            toast.style.background = '#fef2f2';
+            toast.style.color = '#991b1b';
+            toast.style.borderLeftColor = '#ef4444';
+        }
+        
         toast.innerText = message;
         wrapper.appendChild(toast);
-        setTimeout(() => toast.remove(), 3500);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(50px)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
     }
 
+    // Toggle runtime viewing state states
     function switchTab(type) {
         document.getElementById('login-form').classList.toggle('hidden', type !== 'login');
         document.getElementById('signup-form').classList.toggle('hidden', type !== 'signup');
@@ -76,41 +298,74 @@
         document.getElementById('signup-tab').classList.toggle('active', type === 'signup');
     }
 
+    // Connect form metrics to dynamic API gateway authentication endpoints
     async function handleLogin(e) {
         e.preventDefault();
         const btn = document.getElementById('login-btn');
-        btn.disabled = true; btn.innerText = "Processing...";
+        btn.disabled = true; 
+        btn.innerText = "Processing...";
         
         try {
             const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: document.getElementById('login-email').value, password: document.getElementById('login-password').value })
+                body: JSON.stringify({ 
+                    email: document.getElementById('login-email').value, 
+                    password: document.getElementById('login-password').value 
+                })
             });
             const data = await res.json();
             if (res.ok) {
                 showToast('Login successful!');
-                setTimeout(() => window.location.href = data.role === 'Admin' ? '/admin.html' : data.role === 'Staff' ? '/staff.html' : '/customer.html', 1000);
-            } else { showToast(data.error || 'Login failed', false); btn.disabled = false; btn.innerText = "Sign In"; }
-        } catch (err) { showToast("Connection error", false); btn.disabled = false; btn.innerText = "Sign In"; }
+                setTimeout(() => window.location.href = data.role === 'Admin' ? '/admin/admin.html' : data.role === 'Staff' ? '/staff/staff.html' : '/customer/customer.html', 1000);
+            } else { 
+                showToast(data.error || 'Login failed', false); 
+                btn.disabled = false; 
+                btn.innerText = "Sign In"; 
+            }
+        } catch (err) { 
+            showToast("Connection error", false); 
+            btn.disabled = false; 
+            btn.innerText = "Sign In"; 
+        }
     }
 
+    // Forward entry points to API sign-up configurations 
     async function handleSignup(e) {
         e.preventDefault();
         const btn = document.getElementById('signup-btn');
-        btn.disabled = true; btn.innerText = "Processing...";
+        btn.disabled = true; 
+        btn.innerText = "Processing...";
         
         try {
             const res = await fetch('/api/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: document.getElementById('signup-name').value, email: document.getElementById('signup-email').value, phone: document.getElementById('signup-phone').value, password: document.getElementById('signup-password').value })
+                body: JSON.stringify({ 
+                    name: document.getElementById('signup-name').value, 
+                    email: document.getElementById('signup-email').value, 
+                    phone: document.getElementById('signup-phone').value, 
+                    password: document.getElementById('signup-password').value 
+                })
             });
             if (res.ok) {
                 showToast('Registration successful!');
-                setTimeout(() => { document.getElementById('signup-form').reset(); switchTab('login'); btn.disabled = false; btn.innerText = "Create Account"; }, 1500);
-            } else { showToast("Registration failed", false); btn.disabled = false; btn.innerText = "Create Account"; }
-        } catch (err) { showToast("Connection error", false); btn.disabled = false; btn.innerText = "Create Account"; }
+                setTimeout(() => { 
+                    document.getElementById('signup-form').reset(); 
+                    switchTab('login'); 
+                    btn.disabled = false; 
+                    btn.innerText = "Create Account"; 
+                }, 1500);
+            } else { 
+                showToast("Registration failed", false); 
+                btn.disabled = false; 
+                btn.innerText = "Create Account"; 
+            }
+        } catch (err) { 
+            showToast("Connection error", false); 
+            btn.disabled = false; 
+            btn.innerText = "Create Account"; 
+        }
     }
 </script>
 </body>
