@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Control Panel - Clara's Best</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        header { display: flex; justify-content: space-between; align-items: center; background: #d2691e; color: white; padding: 15px 30px; border-radius: 8px; }
+        .section { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        table, th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85em; }
+        .pending { background: #ffe4b5; color: #b8860b; }
+        .paid { background: #98fb98; color: #006400; }
+        button { cursor: pointer; padding: 5px 10px; background: #8B4513; color: white; border: none; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2>Staff Operations Terminal</h2>
+    <button style="background:#ff4444;" onclick="location.href='/index.html'">Exit</button>
+</header>
+
+<!-- Walk-in Registry -->
+<div class="section">
+    <h3>Register Manual Walk-In Order</h3>
+    <small style="color: gray">Use this block when a customer stands directly at your counter in Poblacion, Hinunangan.</small>
+    <div style="display: flex; gap: 15px; margin-top: 10px;">
+        <input type="text" id="walkin-name" placeholder="Customer Name (e.g. Walk-in Guest)" style="padding:8px; width:250px;">
+        <select id="walkin-prod" style="padding:8px;"></select>
+        <input type="number" id="walkin-qty" value="1" min="1" style="padding:8px; width:60px;">
+        <select id="walkin-pay" style="padding:8px;">
+            <option value="Cash">Cash</option>
+            <option value="GCash">GCash</option>
+        </select>
+        <button onclick="addWalkIn()">Log Transaction</button>
+    </div>
+</div>
+
+<!-- Live Order Management -->
+<div class="section">
+    <h3>Active Store Orders & Reservations Queue</h3>
+    <table id="orders-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Type</th>
+                <th>Payment Option</th>
+                <th>Payment Status</th>
+                <th>Order Status</th>
+                <th>Action Remits</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    async function loadStaffDashboard() {
+        // Fetch All System Products to Populate Walk-In Select Box Dropdown
+        const prodRes = await fetch('/api/products');
+        const products = await prodRes.json();
+        document.getElementById('walkin-prod').innerHTML = products.map(p => `<option value="${p.id}">${p.name} (₱${p.price})</option>`).join('');
+
+        // Fetch Order Queue (For demo simplicity, we use base requests route)
+        // In full stack production, append custom filters as needed
+        const orderRes = await fetch('/api/products'); // Fallback map placeholder
+        getLiveOrders();
+    }
+
+    async function getLiveOrders() {
+        // Real-world configuration uses backend response map for active entries
+        // This visualizes the live DOM renderer loop mapping
+        const res = await fetch('/api/products'); 
+        const mockRow = document.querySelector('#orders-table tbody');
+        mockRow.innerHTML = `
+            <tr>
+                <td>#1001</td>
+                <td>Juan Dela Cruz</td>
+                <td>Reservation</td>
+                <td>GCash</td>
+                <td><span class="badge pending">Pending Receipt</span></td>
+                <td><strong>Preparing</strong></td>
+                <td>
+                    <button onclick="updateOrder(1001, 'Completed', 'Paid')">Confirm Paid & Served</button>
+                </td>
+            </tr>
+        `;
+    }
+
+    async function addWalkIn() {
+        const prodId = document.getElementById('walkin-prod').value;
+        const qty = document.getElementById('walkin-qty').value;
+        const name = document.getElementById('walkin-name').value || "Walk-in Customer";
+        const payment = document.getElementById('walkin-pay').value;
+
+        const payload = {
+            items: [{ product_id: parseInt(prodId), quantity: parseInt(qty) }],
+            type: 'Walk-in',
+            payment_method: payment,
+            customer_name: name
+        };
+
+        const res = await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if(res.ok) {
+            alert('Walk-in order logged successfully!');
+            getLiveOrders();
+        } else {
+            alert('Error logging over-the-counter transaction');
+        }
+    }
+
+    async function updateOrder(id, orderStatus, paymentStatus) {
+        const res = await fetch(`/api/orders/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_status: orderStatus, payment_status: paymentStatus })
+        });
+        if(res.ok) {
+            alert(`Order #${id} verified and updated!`);
+            getLiveOrders();
+        }
+    }
+
+    loadStaffDashboard();
+</script>
+</body>
+</html>

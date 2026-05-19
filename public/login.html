@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clara's Best - Login / Register</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #fcf8f2; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .auth-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; border-top: 5px solid #8B4513; }
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
+        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: bold; color: #777; }
+        .tab.active { color: #8B4513; border-bottom: 3px solid #8B4513; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; background: #d2691e; color: white; border: none; padding: 12px; font-size: 16px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        button:hover { background: #8b4513; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="tabs">
+        <div class="tab active" id="login-tab" onclick="switchTab('login')">Login</div>
+        <div class="tab" id="signup-tab" onclick="switchTab('signup')">Sign Up</div>
+    </div>
+
+    <!-- Login Form -->
+    <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="login-email" required>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="login-password" required>
+        </div>
+        <button type="submit">Sign In</button>
+    </form>
+
+    <!-- Signup Form -->
+    <form id="signup-form" class="hidden" onsubmit="handleSignup(event)">
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="signup-name" required>
+        </div>
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="signup-email" required>
+        </div>
+        <div class="form-group">
+            <label>Mobile Number</label>
+            <input type="tel" id="signup-phone" placeholder="09123456789" required>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="signup-password" required>
+        </div>
+        <button type="submit">Create Account</button>
+    </form>
+</div>
+
+<script>
+    function switchTab(type) {
+        if(type === 'login') {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('signup-form').classList.add('hidden');
+            document.getElementById('login-tab').classList.add('active');
+            document.getElementById('signup-tab').classList.remove('active');
+        } else {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('signup-form').classList.remove('hidden');
+            document.getElementById('login-tab').classList.remove('active');
+            document.getElementById('signup-tab').classList.add('active');
+        }
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                alert('Welcome back!');
+                if (data.role === 'Admin') window.location.href = '/admin.html';
+                else if (data.role === 'Staff') window.location.href = '/staff.html';
+                else window.location.href = '/customer.html';
+            } else {
+                alert(data.error || 'Login failed');
+            }
+        } catch (err) {
+            console.error("Login Network Error:", err);
+            alert("Could not connect to the backend server.");
+        }
+    }
+
+    async function handleSignup(e) {
+        e.preventDefault();
+        const name = document.getElementById('signup-name').value;
+        const email = document.getElementById('signup-email').value;
+        const phone = document.getElementById('signup-phone').value;
+        const password = document.getElementById('signup-password').value;
+
+        try {
+            // Pointed directly to /api/signup to sync with the Express App configuration mount point
+            const res = await fetch('/api/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, phone, password })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                alert('Registration complete! You can now log in.');
+                document.getElementById('signup-form').reset(); // Clear input elements
+                switchTab('login');
+            } else {
+                alert(data.error || 'Registration failed');
+            }
+        } catch (err) {
+            console.error("Signup Network Error:", err);
+            alert("Could not connect to the backend server.");
+        }
+    }
+</script>
+</body>
+</html>

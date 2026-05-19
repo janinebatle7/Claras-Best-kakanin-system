@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - Clara's Best</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #fcf8f2; }
+        header { display: flex; justify-content: space-between; align-items: center; background: #8B4513; color: white; padding: 15px 30px; border-radius: 8px; }
+        .container { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; }
+        .menu-section { flex: 2; min-width: 300px; }
+        .cart-section { flex: 1; min-width: 280px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: fit-content; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .card { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 8px; text-align: center; }
+        .logout-btn { background: #ff4444; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 4px; }
+        button.action-btn { background: #d2691e; color: white; border: none; padding: 8px 12px; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; }
+        .cart-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #eee; }
+        .form-control { width: 100%; padding: 8px; margin: 8px 0; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2>Clara's Best: Customer Dashboard</h2>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</header>
+
+<div class="container">
+    <!-- Products Available -->
+    <div class="menu-section">
+        <h3>Available Kakanin Menu</h3>
+        <div class="grid" id="menu-container"></div>
+    </div>
+
+    <!-- Interactive Checkout Box -->
+    <div class="cart-section">
+        <h3>Your Checkout Basket</h3>
+        <div id="cart-items-container"><p style="color: #777;">Basket is empty.</p></div>
+        <hr>
+        
+        <label><strong>Transaction Type:</strong></label>
+        <select id="tx-type" class="form-control" onchange="togglePickupTime()">
+            <option value="Order">Immediate Order (Pickup ASAP)</option>
+            <option value="Reservation">Advance Reservation</option>
+        </select>
+
+        <div id="pickup-time-group" style="display:none;">
+            <label><strong>Pickup Date & Time:</strong></label>
+            <input type="datetime-local" id="pickup-time" class="form-control">
+        </div>
+
+        <label><strong>Payment Method Option:</strong></label>
+        <select id="payment-method" class="form-control">
+            <option value="Cash">Cash (Over the counter)</option>
+            <option value="GCash">GCash Reference Tracking</option>
+        </select>
+
+        <button class="action-btn" style="background:#228B22;" onclick="submitOrder()">Confirm Order / Reservation</button>
+    </div>
+</div>
+
+<script>
+    let cart = [];
+    let productsData = [];
+
+    async function loadMenu() {
+        const res = await fetch('/api/products');
+        productsData = await res.json();
+        const container = document.getElementById('menu-container');
+        container.innerHTML = productsData.map(p => `
+            <div class="card">
+                <h4>${p.name}</h4>
+                <p>₱${p.price}</p>
+                <small>In Stock: ${p.stock_quantity}</small>
+                <button class="action-btn" onclick="addToCart(${p.id})">Add to Basket</button>
+            </div>
+        `).join('');
+    }
+
+    function addToCart(productId) {
+        const prod = productsData.find(p => p.id === productId);
+        const existing = cart.find(item => item.product_id === productId);
+        if (existing) {
+            existing.quantity++;
+        } else {
+            cart.push({ product_id: productId, name: prod.name, price: prod.price, quantity: 1 });
+        }
+        updateCartUI();
+    }
+
+    function updateCartUI() {
+        const container = document.getElementById('cart-items-container');
+        if(cart.length === 0) {
+            container.innerHTML = '<p style="color: #777;">Basket is empty.</p>';
+            return;
+        }
+        let total = 0;
+        container.innerHTML = cart.map(item => {
+            total += item.price * item.quantity;
+            return `<div class="cart-item">
+                <span>${item.name} (x${item.quantity})</span>
+                <span>₱${(item.price * item.quantity).toFixed(2)}</span>
+            </div>`;
+        }).join('') + `<br><strong>Total Due: ₱${total.toFixed(2)}</strong>`;
+    }
+
+    function togglePickupTime() {
+        const type = document.getElementById('tx-type').value;
+        document.getElementById('pickup-time-group').style.display = type === 'Reservation' ? 'block' : 'none';
+    }
+
+    async function submitOrder() {
+        if(cart.length === 0) return alert("Please add items to your basket first.");
+        
+        const payload = {
+            items: cart,
+            type: document.getElementById('tx-type').value,
+            payment_method: document.getElementById('payment-method').value,
+            pickup_date_time: document.getElementById('pickup-time').value || null
+        };
+
+        const res = await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if(res.ok) {
+            alert('Your request has been successfully recorded!');
+            cart = [];
+            updateCartUI();
+        } else {
+            const err = await res.json();
+            alert(err.error || 'Failed to submit order');
+        }
+    }
+
+    async function logout() {
+        await fetch('/api/logout');
+        window.location.href = '/index.html';
+    }
+
+    loadMenu();
+</script>
+</body>
+</html>

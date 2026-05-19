@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CLARA'S BEST: Kakanin Delicacies</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #fcf8f2; }
+        header { background: #111111; color: white; padding: 20px; text-align: center; border-radius: 8px; }
+        .info { font-size: 0.9em; margin-top: 5px; color: #f3e5ab; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        button { background: #d2691e; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; }
+        button:hover { background: #8b4513; }
+        .nav-status { margin-top: 15px; text-align: right; }
+        .nav-status a { color: #d2691e; font-weight: bold; text-decoration: none; margin-left: 15px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>CLARA'S BEST: Kakanin Delicacies</h1>
+    <div class="info">📍 Poblacion, Hinunangan Southern Leyte | 📞 09686911702 | 📧 jiajinbax911@gmail.com</div>
+    <div class="info">FB: Mary Claire Co-Baximen</div>
+    
+    <!-- Dynamic user status bar injected safely into the header -->
+    <div id="auth-status-bar" class="nav-status"></div>
+</header>
+
+<h2>Our Native Delicacies</h2>
+<div class="grid" id="product-container"></div>
+
+<script>
+    // Global runtime variable tracking active authorization states
+    let userSession = { loggedIn: false, role: null };
+
+    // 1. VERIFY AUTHENTICATION STATE AGAINST THE RUNNING NODE.JS ENGINE
+    async function checkUserSession() {
+        try {
+            const response = await fetch('/api/session');
+            const sessionData = await response.json();
+            
+            const statusBar = document.getElementById('auth-status-bar');
+            
+            if (sessionData.loggedIn) {
+                userSession.loggedIn = true;
+                userSession.role = sessionData.user.role;
+                
+                // Determine target redirection profile panel
+                let panelUrl = '/customer.html';
+                if (userSession.role === 'Admin') panelUrl = '/admin.html';
+                if (userSession.role === 'Staff') panelUrl = '/staff.html';
+
+                statusBar.innerHTML = `
+                    <span style="color: #f3e5ab;">Mabuhay, ${sessionData.user.name}! (${userSession.role})</span>
+                    <a href="${panelUrl}" style="color: #fff; border-bottom: 1px dashed #fff;">Go to Dashboard</a>
+                    <a href="#" onclick="processLogout(event)" style="color: #ff4444;">Logout</a>
+                `;
+            } else {
+                userSession.loggedIn = false;
+                userSession.role = null;
+                statusBar.innerHTML = `<a href="/login.html" style="color: #f3e5ab;">Customer Login / Sign Up</a>`;
+            }
+        } catch (error) {
+            console.error("Session sync down:", error);
+            document.getElementById('auth-status-bar').innerHTML = `<a href="/login.html" style="color: #f3e5ab;">Customer Login / Sign Up</a>`;
+        }
+    }
+
+    // 2. LOAD PRODUCTS DIRECTLY FROM THE AIVEN BACKEND DATABASE
+    async function loadProducts() {
+        try {
+            const res = await fetch('/api/products');
+            const products = await res.json();
+            const container = document.getElementById('product-container');
+            
+            if(products.length === 0) {
+                container.innerHTML = `<p>No products available right now. Check back later!</p>`;
+                return;
+            }
+
+            container.innerHTML = products.map(p => `
+                <div class="card">
+                    <h3>${p.name}</h3>
+                    <p>${p.description}</p>
+                    <p><strong>Price:</strong> ₱${parseFloat(p.price).toFixed(2)}</p>
+                    <p>Available Stock: ${p.stock_quantity}</p>
+                    <button onclick="handleAction()">Add to Cart / Order</button>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error("Error pulling product array:", error);
+            document.getElementById('product-container').innerHTML = `<p style="color: red;">Unable to connect to service registry.</p>`;
+        }
+    }
+
+    // 3. INTERCEPT INTERACTION ATTACKS REQUIRING SECURE LOGINS
+    function handleAction() {
+        if (!userSession.loggedIn) {
+            alert("To place an order, make a reservation, or add items to your cart, please log in or sign up first.");
+            window.location.href = '/login.html';
+        } else {
+            // Divert routing based on user permissions
+            if (userSession.role === 'Customer') {
+                window.location.href = '/customer.html';
+            } else if (userSession.role === 'Staff') {
+                window.location.href = '/staff.html';
+            } else if (userSession.role === 'Admin') {
+                window.location.href = '/admin.html';
+            }
+        }
+    }
+
+    // 4. LOGOUT REMIT REQUEST EXECUTION
+    async function processLogout(event) {
+        event.preventDefault();
+        const check = await fetch('/api/logout');
+        if (check.ok) {
+            alert("Logged out successfully.");
+            window.location.reload();
+        }
+    }
+
+    // Self-starting initialization triggers
+    async function initPage() {
+        await checkUserSession();
+        await loadProducts();
+    }
+
+    initPage();
+</script>
+</body>
+</html>
