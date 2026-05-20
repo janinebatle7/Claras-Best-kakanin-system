@@ -6,7 +6,7 @@
     <title>Clara's Best - Home</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #78350f;
@@ -56,14 +56,14 @@
             <li><a href="cancellation.html" class="menu-item">Cancellations</a></li>
             <li><a href="payment.html" class="menu-item">Payments</a></li>
             <li><a href="profile.html" class="menu-item">Profile</a></li>
-            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)">Logout</a></li>
+            <li class="logout-btn"><a href="#logout" class="menu-item logout-btn" id="logout-link">Logout</a></li>
         </ul>
     </nav>
 
     <main class="main-content">
         <div class="content-header" style="margin-bottom: 32px;"><h2>Welcome Back, Ka-Clara! 👋</h2></div>
         
-        <div class="card id="live-tracker-banner" style="display: none; background: #fffbeb; border-left: 4px solid var(--primary-light);">
+        <div class="card" id="live-tracker-banner" style="display: none; background: #fffbeb; border-left: 4px solid var(--primary-light);">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
                 <div>
                     <span class="badge">Live Fulfillment Tracking</span>
@@ -96,20 +96,56 @@
     </main>
 
     <script>
+        /**
+         * Safely orchestrates foundational dashboard tracking dependencies when DOM trees finalize parsing
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchLatestTrackingState();
+            
+            const logoutLink = document.getElementById('logout-link');
+            if (logoutLink) {
+                logoutLink.addEventListener('click', processLogout);
+            }
+        });
+
+        /**
+         * Scans current purchase list arrays and displays active tracking notices if items are inside production pipelines
+         */
         async function fetchLatestTrackingState() {
             try {
                 const res = await fetch('/api/orders');
-                if (res.ok) {
-                    const data = await res.json();
+                if (!res.ok) throw new Error(`HTTP Pipeline tracker status mismatch: ${res.status}`);
+                
+                const data = await res.json();
+                
+                if (data && Array.isArray(data)) {
+                    // Extract first transactional object not flagged as finished or dropped
                     const live = data.find(txn => txn.order_status !== 'Completed' && txn.order_status !== 'Cancelled');
+                    
                     if (live) {
-                        document.getElementById('live-tracker-banner').style.display = 'block';
-                        document.getElementById('track-id').innerText = live.id;
-                        document.getElementById('track-status').innerText = `${live.type} - [${live.order_status}]`;
+                        const banner = document.getElementById('live-tracker-banner');
+                        const trackIdDisplay = document.getElementById('track-id');
+                        const trackStatusDisplay = document.getElementById('track-status');
+                        
+                        if (banner && trackIdDisplay && trackStatusDisplay) {
+                            const orderType = live.order_type || live.type || 'Order';
+                            const orderStatus = live.order_status || 'Pending';
+                            
+                            trackIdDisplay.innerText = live.id;
+                            trackStatusDisplay.innerText = `${orderType} - [${orderStatus}]`;
+                            banner.style.display = 'block';
+                        }
                     }
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                console.error("Failed to parse operational live dashboard indicators:", err); 
+            }
         }
+
+        /**
+         * Confirms action state, calls logout route controllers, and moves client back to entrance gateway paths
+         * @param {Event} event - System click context reference block
+         */
         async function processLogout(event) {
             event.preventDefault();
             if (!confirm("Are you sure you want to end your current session and sign out?")) return;
@@ -118,15 +154,16 @@
                 const check = await fetch('/api/logout');
                 if (check.ok) {
                     alert("Logged out successfully.");
-                    // Updated from local template location string to direct absolute root endpoint route context
                     window.location.href = '/login.html';
+                } else {
+                    alert("Logout failed. Please try again.");
                 }
             } catch (error) {
                 console.error("Logout runtime error network connection failure:", error);
+                alert("Network operational conflict encountered. Forcing interface redirect.");
+                window.location.href = '/login.html'; // Invariant fallback redirect path
             }
         }
-        function handleLogout() { if(confirm("Log out?")) window.location.href = '/api/logout'; }
-        window.addEventListener('DOMContentLoaded', fetchLatestTrackingState);
     </script>
 </body>
 </html>
