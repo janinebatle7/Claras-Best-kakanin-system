@@ -75,6 +75,21 @@ app.get('/api/products', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// FIXED: Changed column 'stock_quantity' to 'inventory' to match your database schema
+app.post('/api/products', async (req, res) => {
+    if (!isStaff(req)) return res.status(403).json({ error: "Access denied." });
+    try {
+        const { name, category, price, stock_quantity, image_url } = req.body;
+        await pool.query(
+            'INSERT INTO products (name, category, price, inventory, image_url) VALUES (?, ?, ?, ?, ?)',
+            [name, category, price, stock_quantity || 0, image_url || null]
+        );
+        res.status(201).json({ message: "Product structured into active catalog schemas successfully." });
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
+});
+
 app.get('/api/orders', async (req, res) => {
     if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
     try {
@@ -101,7 +116,9 @@ app.post('/api/orders', async (req, res) => {
         for (let item of items) {
             const [[prod]] = await conn.query('SELECT price FROM products WHERE id = ?', [item.product_id]);
             total += prod.price * item.quantity;
-            await conn.query('UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?', [item.quantity, item.product_id]);
+            
+            // FIXED: Changed 'stock_quantity' to 'inventory' here as well to prevent checkout errors
+            await conn.query('UPDATE products SET inventory = inventory - ? WHERE id = ?', [item.quantity, item.product_id]);
         }
         
         const [order] = await conn.query('INSERT INTO orders (user_id, customer_name, type, total_price, payment_method) VALUES (?, ?, ?, ?, ?)',
@@ -138,7 +155,6 @@ app.get('/api/payments', async (req, res) => {
 
 // --- NEW ACTION ENDPOINTS FOR USER PANEL INTEGRATION ---
 app.get('/api/users', async (req, res) => {
-    // Graceful fallback allows the dashboard table to read the data cleanly even if sessions aren't fully set up locally
     try {
         const [rows] = await pool.query('SELECT id, name, email, role FROM users ORDER BY id DESC');
         res.json(rows);

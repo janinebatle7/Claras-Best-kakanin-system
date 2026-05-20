@@ -1,12 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Products - Admin</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - Admin</title>
     <link rel="stylesheet" href="admin-style.css">
+    <style>
+        /* Small styling safety layer for dynamic layout rendering */
+        .product-thumbnail {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+            background-color: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+        .action-btn-danger {
+            background-color: #dc2626;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .action-btn-danger:hover {
+            background-color: #b91c1c;
+        }
+
+        /* --- ADD PRODUCT MODAL STYLING --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border: 1px solid #e6ded9;
+        }
+        .modal-box h2 {
+            margin-bottom: 20px;
+            color: var(--primary-color, #8B4513);
+            font-size: 22px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #2d1e18;
+            font-size: 14px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e6ded9;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #faf7f5;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color, #8B4513);
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 24px;
+        }
+        .cancel-btn {
+            background: #e6ded9;
+            color: #4a3e3d;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .cancel-btn:hover {
+            background: #d8ce stroke;
+        }
+    </style>
 </head>
 <body>
     <nav class="sidebar">
-        <div class="brand-section"><div class="brand-logo"></div><div class="brand-name">Clara's Best</div></div>
+        <div class="brand-section">
+            <div class="brand-logo"></div>
+            <div class="brand-name">Clara's Best</div>
+        </div>
         <ul class="sidebar-menu">
             <li><a href="admin.html">Dashboard</a></li>
             <li><a href="users.html">Users</a></li>
@@ -17,26 +117,182 @@
             <li><a href="payments.html">Payments</a></li>
             <li><a href="reports.html">Reports</a></li>
             <li><a href="settings.html">Settings</a></li>
-            <li class="logout-btn"><a href="#logout">Logout</a></li>
+            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)">Logout</a></li>
         </ul>
     </nav>
     <main class="main-content">
         <div class="header-container">
             <div class="page-title"><h1>Product Management</h1></div>
-            <button class="action-btn">+ Add New Product</button>
+            <button class="action-btn" onclick="openAddProductModal()">+ Add New Product</button>
         </div>
         <div class="table-container">
             <table>
                 <thead>
-                    <tr><th>Image</th><th>Product Name</th><th>Category</th><th>Price</th><th>Actions</th></tr>
+                    <tr>
+                        <th>Image</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Actions</th>
+                    </tr>
                 </thead>
-                <tbody>
-                    <tr><td>[Puto Pic]</td><td>Puto</td><td>Rice Cake</td><td>₱36.00</td><td><button class="action-btn">Edit</button></td></tr>
-                    <tr><td>[Biko Pic]</td><td>Biko</td><td>Rice Cake</td><td>₱20.00</td><td><button class="action-btn">Edit</button></td></tr>
-                    <tr><td>[Sapin Pic]</td><td>Sapin-Sapin</td><td>Pudding</td><td>₱26.00</td><td><button class="action-btn">Edit</button></td></tr>
+                <tbody id="products-table-body">
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 20px; color: #64748b;">
+                            Synchronizing products repository catalogue...
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </main>
+
+    <div class="modal-overlay" id="addProductModal">
+        <div class="modal-box">
+            <h2>Add New Product</h2>
+            <form id="addProductForm" onsubmit="handleCreateProduct(event)">
+                <div class="form-group">
+                    <label for="prodName">Product Name</label>
+                    <input type="text" id="prodName" required placeholder="e.g., Puto">
+                </div>
+                <div class="form-group">
+                    <label for="prodCategory">Category</label>
+                    <select id="prodCategory" required>
+                        <option value="Rice Cake">Rice Cake</option>
+                        <option value="Pudding">Pudding</option>
+                        <option value="Delicacy">Delicacy</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="prodPrice">Price (₱)</label>
+                    <input type="number" id="prodPrice" step="0.01" min="0" required placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="prodStock">Initial Stock Quantity</label>
+                    <input type="number" id="prodStock" min="0" required placeholder="100">
+                </div>
+                <div class="form-group">
+                    <label for="prodImageUrl">Image URL (Optional)</label>
+                    <input type="text" id="prodImageUrl" placeholder="e.g., /images/puto.jpg">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="cancel-btn" onclick="closeAddProductModal()">Cancel</button>
+                    <button type="submit" class="action-btn">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 1. Fetch products from database row data registries cleanly
+        async function fetchProductsList() {
+            try {
+                const response = await fetch('/api/products');
+                if (!response.ok) throw new Error("Failed to capture structural inventory values.");
+
+                const products = await response.json();
+                const tableBody = document.getElementById('products-table-body');
+
+                if (products.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #64748b;">No products found in the catalog.</td></tr>`;
+                    return;
+                }
+
+                // Render database lines into structured table iterations
+                tableBody.innerHTML = products.map(product => {
+                    // Check if an explicit image path exists; otherwise, provide a fallback box
+                    const imageElement = product.image_url 
+                        ? `<img src="${product.image_url}" alt="${product.name}" class="product-thumbnail" onerror="this.onerror=null; this.parentElement.innerHTML='[No Pic]';">`
+                        : `<div class="product-thumbnail">🥞</div>`;
+
+                    return `
+                        <tr>
+                            <td>${imageElement}</td>
+                            <td style="font-weight: 600;">${product.name}</td>
+                            <td>${product.category || 'Kakanin'}</td>
+                            <td style="font-weight: bold; color: var(--primary-color, #8B4513);">₱${Number(product.price).toFixed(2)}</td>
+                            <td>
+                                <button class="action-btn" onclick="editProduct(${product.id})">Edit</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error("Products listing load error failure:", error);
+                document.getElementById('products-table-body').innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 20px; color: #dc2626; font-weight: bold;">
+                            Error running component records sync routine.
+                        </td>
+                    </tr>`;
+            }
+        }
+
+        // 2. Modal Interface Toggle Control Subroutines
+        function openAddProductModal() {
+            document.getElementById('addProductModal').style.display = 'flex';
+        }
+
+        function closeAddProductModal() {
+            document.getElementById('addProductModal').style.display = 'none';
+            document.getElementById('addProductForm').reset();
+        }
+
+        // 3. Process new product additions to back-end endpoints
+        async function handleCreateProduct(event) {
+            event.preventDefault();
+
+            const payload = {
+                name: document.getElementById('prodName').value,
+                category: document.getElementById('prodCategory').value,
+                price: parseFloat(document.getElementById('prodPrice').value),
+                stock_quantity: parseInt(document.getElementById('prodStock').value),
+                image_url: document.getElementById('prodImageUrl').value || null
+            };
+
+            try {
+                // Sent directly to your custom product storage schema handling route
+                const response = await fetch('/api/products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error("Could not insert product into server repository database records.");
+
+                alert("Product saved successfully!");
+                closeAddProductModal();
+                fetchProductsList(); // Refresh table catalog display instantly
+
+            } catch (error) {
+                console.error("Product insertion error state:", error);
+                alert("Error saving new product: " + error.message);
+            }
+        }
+
+        function editProduct(productId) {
+            alert("Loading database schema payload fields for target row identifier: " + productId);
+        }
+
+        // 4. Clear user cookies and kill existing authorization context
+        async function processLogout(event) {
+            event.preventDefault();
+            if (!confirm("Are you sure you want to end your current session and sign out?")) return;
+
+            try {
+                const check = await fetch('/api/logout');
+                if (check.ok) {
+                    alert("Logged out successfully.");
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error("Logout runtime error network connection failure:", error);
+            }
+        }
+
+        // Fire initialization data queries on page loading completion hooks
+        window.onload = fetchProductsList;
+    </script>
 </body>
 </html>
