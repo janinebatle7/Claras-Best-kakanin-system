@@ -36,6 +36,7 @@
             <li><a href="cancellation.html" class="menu-item">Cancellations</a></li>
             <li><a href="payment.html" class="menu-item active">Payments</a></li>
             <li><a href="profile.html" class="menu-item">Profile</a></li>
+            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)">Logout</a></li>
         </ul>
     </nav>
     <main class="main-content">
@@ -80,6 +81,21 @@
                 const res = await fetch(`/api/orders/${order_id}/payment`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reference_number: ref, proof_image_name: 'receipt_' + order_id + '.jpg' }) });
                 if (res.ok) { alert("Payment sent."); loadPayments(); }
             } catch(err) { console.error(err); }
+        }
+        async function processLogout(event) {
+            event.preventDefault();
+            if (!confirm("Are you sure you want to end your current session and sign out?")) return;
+
+            try {
+                const check = await fetch('/api/logout');
+                if (check.ok) {
+                    alert("Logged out successfully.");
+                    // Updated from local template location string to direct absolute root endpoint route context
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error("Logout runtime error network connection failure:", error);
+            }
         }
         window.addEventListener('DOMContentLoaded', loadPayments);
     </script>

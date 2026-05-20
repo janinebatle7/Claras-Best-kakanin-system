@@ -40,6 +40,7 @@
             <li><a href="cancellation.html" class="menu-item">Cancellations</a></li>
             <li><a href="payment.html" class="menu-item">Payments</a></li>
             <li><a href="profile.html" class="menu-item">Profile</a></li>
+            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)">Logout</a></li>
         </ul>
     </nav>
     
@@ -95,7 +96,21 @@
             localStorage.setItem('userCart', JSON.stringify(cart));
             alert(`${name} added to cart!`);
         }
+async function processLogout(event) {
+            event.preventDefault();
+            if (!confirm("Are you sure you want to end your current session and sign out?")) return;
 
+            try {
+                const check = await fetch('/api/logout');
+                if (check.ok) {
+                    alert("Logged out successfully.");
+                    // Updated from local template location string to direct absolute root endpoint route context
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error("Logout runtime error network connection failure:", error);
+            }
+        }
         window.addEventListener('DOMContentLoaded', loadProducts);
     </script>
 </body>
