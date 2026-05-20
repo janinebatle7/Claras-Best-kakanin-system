@@ -6,54 +6,140 @@
     <title>Walk-in Orders - Staff</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        .btn-submit { background: var(--primary); color: white; padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; }
-        .btn-submit:hover { background: #a0522d; }
+        /* Form Field Layout Mechanics */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main); font-size: 0.95rem; }
+        
+        input, select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid var(--border-color, #e6ded9); 
+            border-radius: var(--radius-md, 6px); 
+            box-sizing: border-box; 
+            font-size: 1rem;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+            background-color: #fffdfa;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(92, 29, 36, 0.1);
+        }
+        
+        /* Transaction Control Elements matching Clara's Best palette */
+        .btn-submit { 
+            background: var(--accent); 
+            color: white; 
+            padding: 14px 25px; 
+            border: none; 
+            border-radius: var(--radius-md, 6px); 
+            cursor: pointer; 
+            font-weight: 600; 
+            width: 100%; 
+            font-size: 1rem;
+            transition: background var(--transition-fast), transform var(--transition-fast), opacity var(--transition-fast);
+            box-shadow: 0 2px 4px 0 rgba(92, 29, 36, 0.06);
+        }
+        .btn-submit:hover { 
+            background: var(--accent-hover); 
+        }
+        .btn-submit:active {
+            transform: scale(0.99);
+        }
+        .btn-submit:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+        }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <h2>Staff Portal</h2>
+        <h2>Clara's Best</h2>
         <a href="staff.html" class="menu-item">Dashboard</a>
         <a href="orders.html" class="menu-item">Orders</a>
         <a href="reservations.html" class="menu-item">Reservations</a>
         <a href="walk.html" class="menu-item active">Walk-in Orders</a>
         <a href="inventory.html" class="menu-item">Inventory</a>
         <a href="payment.html" class="menu-item">Payments</a>
-        <a href="#" onclick="logout()" class="menu-item" style="color:#ff8a8a; margin-top: 50px;">Logout</a>
+        <a href="#" onclick="logout(event)" class="menu-item" style="color:#b91c1c; margin-top: auto;">Logout</a>
     </div>
 
     <main class="content">
-        <h1>Process Walk-in Order</h1>
-        <div class="card">
-            <form id="walk-in-form">
+        <div class="header-container">
+            <h1 style="font-family: 'Georgia', serif; color: var(--accent); font-size: 2rem; margin-bottom: 20px;">Process Walk-in Order</h1>
+        </div>
+        
+        <div class="card" style="max-width: 600px; margin-top: 10px;">
+            <form id="walk-in-form" novalidate>
                 <div class="form-group">
-                    <label>Customer Name</label>
-                    <input type="text" id="cust-name" placeholder="Enter customer name" required>
+                    <label for="cust-name">Customer Name</label>
+                    <input type="text" id="cust-name" placeholder="Enter customer name (e.g., Jane Doe)" required>
                 </div>
                 <div class="form-group">
-                    <label>Order Amount (₱)</label>
-                    <input type="number" id="order-total" placeholder="0.00" step="0.01" required>
+                    <label for="order-total">Order Amount (₱)</label>
+                    <input type="number" id="order-total" placeholder="0.00" step="0.01" min="0.01" required>
                 </div>
-                <button type="submit" class="btn-submit">Process Walk-in Order</button>
+                <button type="submit" id="submit-button" class="btn-submit">Process Walk-in Order</button>
             </form>
         </div>
     </main>
 
     <script>
-        document.getElementById('walk-in-form').onsubmit = async (e) => {
+        /**
+         * Safely orchestrates submission lifecycles once structural assets load completely
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            const formElement = document.getElementById('walk-in-form');
+            if (formElement) {
+                formElement.addEventListener('submit', handleWalkInSubmit);
+            }
+        });
+
+        /**
+         * Intercepts transaction event streams and delivers payloads to core endpoints cleanly
+         * @param {Event} e - Event model reference block
+         */
+        async function handleWalkInSubmit(e) {
             e.preventDefault();
             
+            const form = e.target;
+            const submitBtn = document.getElementById('submit-button');
+            
+            // Extract DOM value strings directly
+            const nameInput = document.getElementById('cust-name');
+            const totalInput = document.getElementById('order-total');
+            
+            const cleanName = nameInput.value.trim();
+            const cleanTotal = parseFloat(totalInput.value);
+
+            // Defensive form field verification validations
+            if (!cleanName) {
+                alert("Please enter a valid customer name.");
+                nameInput.focus();
+                return;
+            }
+            if (isNaN(cleanTotal) || cleanTotal <= 0) {
+                alert("Please enter a valid order amount greater than zero.");
+                totalInput.focus();
+                return;
+            }
+
+            // Map exact backend data structural requirements
             const payload = {
-                customer_name: document.getElementById('cust-name').value,
-                total_price: document.getElementById('order-total').value,
+                customer_name: cleanName,
+                total_price: cleanTotal,
                 order_type: 'Walk-in',
-                order_status: 'Completed' // Walk-ins are usually immediate
+                order_status: 'Completed' // Walk-ins represent immediate pipeline settlements
             };
 
             try {
+                // Prevent duplicate operational triggers during network active states
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = "Processing Order...";
+                }
+
                 const res = await fetch('/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -62,18 +148,36 @@
 
                 if (res.ok) {
                     alert("Walk-in order processed successfully!");
-                    document.getElementById('walk-in-form').reset();
+                    form.reset();
+                    if (nameInput) nameInput.focus(); // Ease of reuse for staff workflows
                 } else {
-                    alert("Failed to process order. Please try again.");
+                    throw new Error(`Server endpoint response anomaly: ${res.status}`);
                 }
             } catch (err) {
-                console.error("Error submitting order:", err);
+                console.error("Error submitting walk-in order stream:", err);
+                alert("Failed to process transaction. Verify network state routes and try again.");
+            } finally {
+                // Return interface controls back to baseline parameters
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Process Walk-in Order";
+                }
             }
-        };
+        }
 
-        async function logout() {
-            await fetch('/api/logout');
-            window.location.href = '/login.html';
+        /**
+         * Clears state sessions and drops operational focus maps out to gateway access nodes
+         * @param {Event} e - Tracking action context intercept block
+         */
+        async function logout(e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            try {
+                await fetch('/api/logout');
+                window.location.href = '/login.html';
+            } catch (err) {
+                console.error("Logout request runtime drop exception handled:", err);
+                window.location.href = '/login.html'; // Safe programmatic backup line override
+            }
         }
     </script>
 </body>

@@ -3,30 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Management</title>
+    <title>Inventory Management - Staff</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        .low-stock { color: #d9534f; font-weight: bold; }
-        .stock-badge { padding: 4px 10px; border-radius: 12px; background: #f0f0f0; }
-        .refresh-btn { background: #555; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 10px; }
+        /* Interactive Component Elements matching Clara's Best palette */
+        .refresh-btn { 
+            background: var(--accent); 
+            color: white; 
+            padding: 10px 18px; 
+            border: none; 
+            border-radius: var(--radius-md); 
+            cursor: pointer; 
+            margin-bottom: 20px; 
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all var(--transition-fast);
+            box-shadow: 0 2px 4px 0 rgba(92, 29, 36, 0.06);
+        }
+        .refresh-btn:hover { 
+            background: var(--accent-hover); 
+            box-shadow: 0 4px 12px rgba(92, 29, 36, 0.15);
+        }
+        .refresh-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Stock Micro-Badges & Status Elements */
+        .stock-badge { 
+            padding: 6px 14px; 
+            border-radius: 50px; 
+            background: #fbf9f4; 
+            border: 1px solid var(--border-color);
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .low-stock { 
+            color: #b91c1c; 
+            font-weight: 700; 
+            background: #fef2f2;
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            display: inline-block;
+        }
+        .sufficient-stock {
+            color: #137333;
+            font-weight: 700;
+            background: #e6f4ea;
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <h2>Staff Portal</h2>
+        <h2>Clara's Best</h2>
         <a href="staff.html" class="menu-item">Dashboard</a>
         <a href="orders.html" class="menu-item">Orders</a>
         <a href="reservations.html" class="menu-item">Reservations</a>
         <a href="walk.html" class="menu-item">Walk-in Orders</a>
         <a href="inventory.html" class="menu-item active">Inventory</a>
         <a href="payment.html" class="menu-item">Payments</a>
-        <a href="#" onclick="logout()" class="menu-item" style="color:#ff8a8a; margin-top: 50px;">Logout</a>
+        <a href="#" onclick="logout(event)" class="menu-item" style="color:#b91c1c; margin-top: auto;">Logout</a>
     </div>
 
     <main class="content">
-        <h1>Stock & Raw Ingredients</h1>
-        <button class="refresh-btn" onclick="loadInventory()">Refresh Inventory</button>
-        <div class="card">
+        <div class="header-container">
+            <h1 style="font-family: 'Georgia', serif; color: var(--accent); font-size: 2rem; margin-bottom: 20px;">Stock & Raw Ingredients</h1>
+        </div>
+        
+        <button class="refresh-btn" onclick="loadInventory()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            Refresh Inventory
+        </button>
+        
+        <div class="table-container">
             <table id="inv-table">
                 <thead>
                     <tr>
@@ -36,42 +90,89 @@
                     </tr>
                 </thead>
                 <tbody id="inv-body">
-                    <tr><td colspan="3">Loading inventory...</td></tr>
+                    <tr><td colspan="3" style="text-align: center; padding: 20px; color: var(--text-muted);">Loading inventory updates...</td></tr>
                 </tbody>
             </table>
         </div>
     </main>
 
     <script>
+        /**
+         * Binds operational view listeners securely when the DOM structure finishes parsing
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            loadInventory();
+        });
+
+        /**
+         * Queries product datasets from controllers and injects organized table updates
+         */
         async function loadInventory() {
             try {
                 const res = await fetch('/api/products');
+                if (!res.ok) throw new Error(`HTTP Inventory route anomaly: ${res.status}`);
+                
                 const data = await res.json();
                 const invBody = document.getElementById('inv-body');
                 
+                if (!data || data.length === 0) {
+                    invBody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px; color: var(--text-muted);">No inventory stock elements registered.</td></tr>';
+                    return;
+                }
+                
                 invBody.innerHTML = data.map(p => {
-                    const isLow = p.stock_quantity < 5;
+                    const stockVal = parseFloat(p.stock_quantity) || 0;
+                    const isLow = stockVal < 5;
+                    const safeName = escapeHtml(p.name || 'Unnamed Ingredient');
+                    
                     return `
                         <tr>
-                            <td>${p.name}</td>
-                            <td><span class="stock-badge">${p.stock_quantity}</span></td>
-                            <td class="${isLow ? 'low-stock' : ''}">
-                                ${isLow ? '⚠️ Low Stock' : '✅ Sufficient'}
+                            <td><strong>${safeName}</strong></td>
+                            <td><span class="stock-badge">${stockVal}</span></td>
+                            <td>
+                                <span class="${isLow ? 'low-stock' : 'sufficient-stock'}">
+                                    ${isLow ? '⚠️ Low Stock' : '✅ Sufficient'}
+                                </span>
                             </td>
                         </tr>
                     `;
                 }).join('');
             } catch (err) {
-                console.error("Error loading inventory:", err);
+                console.error("Error loading inventory dataset array details:", err);
+                const invBody = document.getElementById('inv-body');
+                if (invBody) {
+                    invBody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px; color: #b91c1c;">Failed to sync with backend inventory channels.</td></tr>';
+                }
             }
         }
 
-        async function logout() {
-            await fetch('/api/logout');
-            window.location.href = '/login.html';
+        /**
+         * Clears persistent user credentials and pushes viewport to security gateway interfaces
+         * @param {Event} e - Context intercept arguments
+         */
+        async function logout(e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            try {
+                await fetch('/api/logout');
+                window.location.href = '/login.html';
+            } catch (err) {
+                console.error("Logout dispatch failed:", err);
+                window.location.href = '/login.html'; // Direct execution context override fallback
+            }
         }
 
-        window.onload = loadInventory;
+        /**
+         * Escape text injection sequences cleanly to ensure parsing protection
+         * @param {String} str - Target data variable
+         */
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
     </script>
 </body>
 </html>

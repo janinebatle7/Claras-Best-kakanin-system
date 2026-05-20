@@ -6,10 +6,35 @@
     <title>Reservations - Staff</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        .btn-action { background-color: var(--primary); color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
-        .btn-action:hover { background-color: #a0522d; }
+        /* Interactive Action Component Overrides matching Clara's Best palette */
+        .btn-action { 
+            background-color: var(--accent); 
+            color: white; 
+            padding: 8px 14px; 
+            border: none; 
+            border-radius: var(--radius-sm); 
+            cursor: pointer; 
+            font-size: 14px; 
+            font-weight: 600;
+            transition: background var(--transition-fast), transform var(--transition-fast);
+        }
+        .btn-action:hover { 
+            background-color: var(--accent-hover); 
+        }
+        .btn-action:active {
+            transform: scale(0.97);
+        }
         
-        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+        /* Dynamic Status Micro-Badges */
+        .status-badge { 
+            padding: 6px 14px; 
+            border-radius: 50px; 
+            font-size: 0.75rem; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
         .status-pending { background: #fff3cd; color: #856404; }
         .status-confirmed { background: #d4edda; color: #155724; }
         .status-cancelled { background: #f8d7da; color: #721c24; }
@@ -17,19 +42,22 @@
 </head>
 <body>
     <div class="sidebar">
-        <h2>Staff Portal</h2>
+        <h2>Clara's Best</h2>
         <a href="staff.html" class="menu-item">Dashboard</a>
         <a href="orders.html" class="menu-item">Orders</a>
         <a href="reservations.html" class="menu-item active">Reservations</a>
         <a href="walk.html" class="menu-item">Walk-in Orders</a>
         <a href="inventory.html" class="menu-item">Inventory</a>
         <a href="payment.html" class="menu-item">Payments</a>
-        <a href="#" onclick="logout()" class="menu-item" style="color:#ff8a8a; margin-top: 50px;">Logout</a>
+        <a href="#" onclick="logout(event)" class="menu-item" style="color:#b91c1c; margin-top: auto;">Logout</a>
     </div>
 
     <main class="content">
-        <h1>Advance Reservations</h1>
-        <div class="card">
+        <div class="header-container">
+            <h1 style="font-family: 'Georgia', serif; color: var(--accent); font-size: 2rem; margin-bottom: 20px;">Advance Reservations</h1>
+        </div>
+        
+        <div class="table-container">
             <table id="res-table">
                 <thead>
                     <tr>
@@ -41,32 +69,52 @@
                     </tr>
                 </thead>
                 <tbody id="res-body">
-                    <tr><td colspan="5">Loading reservations...</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">Loading reservations...</td></tr>
                 </tbody>
             </table>
         </div>
     </main>
 
     <script>
+        /**
+         * Orchestrates foundational event bindings cleanly once DOM rendering updates finalize
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            loadReservations();
+            // Auto-refresh layout queue every 60 seconds cleanly
+            setInterval(loadReservations, 60000);
+        });
+
+        /**
+         * Retrieves data from advance reservations API endpoint and builds data rows
+         */
         async function loadReservations() {
             try {
                 const res = await fetch('/api/reservations');
+                if (!res.ok) throw new Error(`HTTP Pipeline connectivity error: ${res.status}`);
+                
                 const data = await res.json();
                 const tbody = document.getElementById('res-body');
 
-                if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5">No pending reservations found.</td></tr>';
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">No pending reservations found.</td></tr>';
                     return;
                 }
 
                 tbody.innerHTML = data.map(r => {
-                    const statusClass = `status-${r.status.toLowerCase()}`;
+                    const statusText = r.status || 'Pending';
+                    const statusClass = `status-${statusText.toLowerCase()}`;
+                    const safeName = escapeHtml(r.customer_name || 'Valued Customer');
+                    
+                    const dateObj = r.pickup_date ? new Date(r.pickup_date) : new Date();
+                    const safeDate = !isNaN(dateObj.getTime()) ? dateObj.toLocaleDateString() : new Date().toLocaleDateString();
+
                     return `
                         <tr>
-                            <td>#${r.id}</td>
-                            <td>${r.customer_name}</td>
-                            <td>${new Date(r.pickup_date).toLocaleDateString()}</td>
-                            <td><span class="status-badge ${statusClass}">${r.status}</span></td>
+                            <td><strong>#${r.id}</strong></td>
+                            <td>${safeName}</td>
+                            <td>${safeDate}</td>
+                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                             <td>
                                 <button class="btn-action" onclick="updateReservation(${r.id})">Update</button>
                             </td>
@@ -74,36 +122,70 @@
                     `;
                 }).join('');
             } catch (err) {
-                console.error("Error loading reservations:", err);
+                console.error("Error loading advance reservations dataset context:", err);
+                const tbody = document.getElementById('res-body');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #b91c1c;">Failed to sync reservation tracking systems.</td></tr>';
+                }
             }
         }
 
+        /**
+         * Modifies database pipeline state markers using modal runtime overrides
+         * @param {Number} id - Target reservation identifier mapping reference
+         */
         async function updateReservation(id) {
             const newStatus = prompt("Update Reservation Status (Pending, Confirmed, Cancelled):");
             if (!newStatus) return;
 
-            const res = await fetch(`/api/reservations/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus })
-            });
+            const cleanStatus = newStatus.trim();
 
-            if (res.ok) {
-                alert("Status updated successfully!");
-                loadReservations();
-            } else {
-                alert("Failed to update status.");
+            try {
+                const res = await fetch(`/api/reservations/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: cleanStatus })
+                });
+
+                if (res.ok) {
+                    alert("Status updated successfully!");
+                    loadReservations(); // Dynamic UI grid updates executed sequentially
+                } else {
+                    alert("Failed to update status.");
+                }
+            } catch (err) {
+                console.error("Pipeline transactional update timeout:", err);
+                alert("Network operational conflict encountered. Verify server routes.");
             }
         }
 
-        async function logout() {
-            await fetch('/api/logout');
-            window.location.href = '/login.html';
+        /**
+         * Discharges user session contexts cleanly and maps viewport out to login layouts
+         * @param {Event} e - Optional event target context argument
+         */
+        async function logout(e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            try {
+                await fetch('/api/logout');
+                window.location.href = '/login.html';
+            } catch (err) {
+                console.error("Logout request dropped:", err);
+                window.location.href = '/login.html'; // Invariant fallback target line
+            }
         }
 
-        window.onload = loadReservations;
-        // Auto-refresh every 60 seconds
-        setInterval(loadReservations, 60000);
+        /**
+         * Sanitization logic blocks verifying text input strings for DOM rendering security
+         * @param {String} str - Target value text block
+         */
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
     </script>
 </body>
 </html>

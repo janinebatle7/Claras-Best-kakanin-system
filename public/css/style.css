@@ -1,31 +1,32 @@
 /* public/css/style.css */
 
-/* 1. Modern Color Palette & Design System */
+/* 1. Clara's Best Premium Color Palette & Design System */
 :root {
-    /* Brand Colors */
-    --sidebar-bg: #0f172a;    /* Deeper, premium slate */
-    --accent: #f59e0b;        /* Vibrant Amber Gold */
-    --accent-hover: #d97706;  /* Richer Amber for interactive states */
-    --bg-color: #f8fafc;      /* Crisp, clean slate-gray backdrop */
+    /* Brand Accent Colors */
+    --sidebar-bg: #f9f5eb;      /* Light Off-White/Cream Sidebar */
+    --accent: #5c1d24;          /* Deep Elegant Burgundy / Wine Red */
+    --accent-hover: #451419;    /* Richer, darker Burgundy for hover states */
+    --gold-accent: #dca743;     /* Warm Metallic Gold for active highlights */
+    --bg-color: #fdfbf7;        /* Soft, warm-creamy backdrop canvas */
     
     /* Text Colors */
-    --text-main: #0f172a;     /* Deep slate for high legibility */
-    --text-muted: #64748b;    /* Perfect contrast for captions/subtitles */
-    --text-sidebar: #94a3b8;  /* Readable muted tone for dark backgrounds */
+    --text-main: #2d1a1c;       /* Dark earthy brown-black for high legibility */
+    --text-muted: #7d6769;      /* Sophisticated contrast for subtitled descriptions */
+    --text-sidebar: #5c1d24;    /* Text inside menu lists takes on primary brand color */
     
     /* Interface & Elevation */
     --card-bg: #ffffff;
-    --border-color: #e2e8f0;  /* Subtle, crisp dividers */
+    --border-color: #f0e6d2;    /* Delicate warm-toned gridlines and dividers */
     --radius-sm: 6px;
     --radius-md: 10px;
-    --radius-lg: 16px;       /* Softer, modern corners */
+    --radius-lg: 18px;          /* Luxury soft rounded corners for elements */
     
-    /* Soft, realistic depth shadows */
-    --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 
-                   0 2px 6px -1px rgba(15, 23, 42, 0.03);
+    /* Organic Soft Depth Shadows */
+    --card-shadow: 0 10px 30px -5px rgba(92, 29, 36, 0.04), 
+                   0 2px 8px -2px rgba(92, 29, 36, 0.02);
     
     /* Smooth, consistent animations */
-    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* 2. Global Resets & Typography */
@@ -50,51 +51,54 @@ body {
 .sidebar { 
     width: 280px; 
     background: var(--sidebar-bg); 
-    color: white; 
+    color: var(--accent); 
     height: 100vh; 
-    padding: 32px 24px; 
+    padding: 35px 24px; 
     flex-shrink: 0; 
     display: flex;
     flex-direction: column;
+    border-right: 1px solid var(--border-color);
 }
 
+/* Brand Section title matches your artisan layout font family */
 .sidebar h2 { 
-    font-size: 0.85rem; 
-    color: var(--text-sidebar); 
+    font-family: 'Georgia', serif;
+    font-size: 1.35rem; 
+    color: var(--accent); 
     margin-bottom: 32px; 
-    text-transform: uppercase; 
-    letter-spacing: 1.5px; 
+    text-transform: none; 
+    letter-spacing: 0.5px; 
     font-weight: 700;
 }
 
 .menu-item { 
     display: flex;
     align-items: center;
-    padding: 12px 16px; 
-    color: #cbd5e1; 
+    padding: 12px 18px; 
+    color: var(--text-muted); 
     text-decoration: none; 
     border-radius: var(--radius-md); 
     margin-bottom: 6px; 
     font-size: 0.95rem;
-    font-weight: 500;
+    font-weight: 600;
     transition: all var(--transition-fast); 
 }
 
 /* Menu Hover State */
 .menu-item:hover { 
-    background: rgba(255, 255, 255, 0.05); 
-    color: white; 
+    background: rgba(92, 29, 36, 0.04); 
+    color: var(--accent); 
 }
 
-/* Menu Active State - Uses a cohesive background with an amber accent indicator */
+/* Menu Active State - Uses an elegant light burgundy background with a gold accent indicator */
 .menu-item.active { 
-    background: rgba(245, 158, 11, 0.15); 
+    background: rgba(92, 29, 36, 0.08); 
     color: var(--accent); 
-    font-weight: 600; 
+    font-weight: 700; 
     position: relative;
 }
 
-/* Optional: Small accent dot/line next to active item */
+/* Gold accent indicator pill next to active item */
 .menu-item.active::before {
     content: '';
     position: absolute;
@@ -102,7 +106,7 @@ body {
     top: 25%;
     height: 50%;
     width: 4px;
-    background: var(--accent);
+    background: var(--gold-accent);
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
@@ -124,11 +128,10 @@ body {
     transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-/* Subtle lift on hover makes cards feel interactive */
+/* Smooth lift on hover matching luxury elements */
 .card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 
-                0 4px 10px -2px rgba(15, 23, 42, 0.04);
+    transform: translateY(-3px);
+    box-shadow: 0 16px 36px -8px rgba(92, 29, 36, 0.08);
 }
 
 /* 6. Clean, Readable Table Styling */
@@ -140,15 +143,15 @@ table {
 }
 
 th { 
-    background: #f1f5f9; 
+    background: #fbf9f4; /* Subtle matching warm tone header */
     padding: 16px 20px; 
     text-align: left; 
-    color: var(--text-muted); 
+    color: var(--accent); 
     font-size: 0.8rem; 
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--border-color);
+    letter-spacing: 0.8px;
+    border-bottom: 2px solid var(--border-color);
 }
 
 /* Rounds the top-left and top-right corners of the table header */
@@ -157,7 +160,7 @@ th:last-child { border-top-right-radius: var(--radius-md); }
 
 td { 
     padding: 18px 20px; 
-    border-bottom: 1px solid var(--border-color); 
+    border-bottom: 1px solid rgba(240, 230, 210, 0.6); 
     font-size: 0.95rem;
     color: var(--text-main);
     transition: background var(--transition-fast);
@@ -165,7 +168,7 @@ td {
 
 /* Row highlighting for scanning large data sets */
 tr:hover td {
-    background: #f8fafc;
+    background: #fffdf9;
 }
 
 /* Removes bottom border from the last row to look clean */
@@ -175,12 +178,12 @@ tr:last-child td {
 
 /* 7. Premium Interactive Buttons */
 button { 
-    background: var(--sidebar-bg); 
+    background: var(--accent); 
     color: white; 
     padding: 11px 20px; 
     font-size: 0.9rem;
     font-weight: 600;
-    border: 1px solid transparent; 
+    border: none; 
     border-radius: var(--radius-md); 
     cursor: pointer; 
     display: inline-flex;
@@ -188,21 +191,21 @@ button {
     justify-content: center;
     gap: 8px;
     transition: all var(--transition-fast); 
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 4px 0 rgba(92, 29, 36, 0.06);
 }
 
 button:hover { 
-    background: var(--accent); 
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+    background: var(--accent-hover); 
+    box-shadow: 0 4px 12px rgba(92, 29, 36, 0.15);
 }
 
 /* Subtle feedback when clicked */
 button:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
 }
 
 /* Focus styles for accessibility */
 button:focus-visible, .menu-item:focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--gold-accent);
     outline-offset: 2px;
 }

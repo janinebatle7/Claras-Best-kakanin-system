@@ -8,63 +8,105 @@
     <style>
         .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .stat-card { background: white; padding: 25px; border-radius: 12px; border: 1px solid #e6ded9; text-align: center; }
-        .stat-value { font-size: 2rem; font-weight: bold; color: var(--primary); display: block; }
+        .stat-value { font-size: 2rem; font-weight: bold; color: var(--accent); display: block; }
         .stat-label { color: #666; font-size: 0.9rem; text-transform: uppercase; }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <h2>Staff Portal</h2>
+        <h2>Clara's Best</h2>
         <a href="staff.html" class="menu-item active">Dashboard</a>
         <a href="orders.html" class="menu-item">Orders</a>
         <a href="reservations.html" class="menu-item">Reservations</a>
         <a href="walk.html" class="menu-item">Walk-in Orders</a>
         <a href="inventory.html" class="menu-item">Inventory</a>
         <a href="payment.html" class="menu-item">Payments</a>
-        <a href="#" onclick="logout()" class="menu-item" style="color:#ff8a8a; margin-top: 50px;">Logout</a>
+        <a href="#" onclick="logout(event)" class="menu-item" style="color:#b91c1c; margin-top: auto;">Logout</a>
     </div>
 
     <main class="content">
-        <h1>Dashboard Overview</h1>
+        <div class="header-container">
+            <h1 style="font-family: 'Georgia', serif; color: var(--accent); font-size: 2rem; margin-bottom: 20px;">Dashboard Overview</h1>
+        </div>
         
         <div class="stats-container">
-            <div class="stat-card">
+            <div class="stat-card card">
                 <span class="stat-label">Total Revenue</span>
                 <span class="stat-value" id="total-revenue">₱0</span>
             </div>
-            <div class="stat-card">
+            <div class="stat-card card">
                 <span class="stat-label">Pending Orders</span>
                 <span class="stat-value" id="pending-orders">0</span>
             </div>
         </div>
 
         <div class="card">
-            <h3>Quick Actions</h3>
-            <p>Welcome back! You can manage your daily operations using the sidebar navigation. Check the pending orders queue or verify incoming payments to keep the system up to date.</p>
+            <h3 style="font-family: 'Georgia', serif; color: var(--accent); margin-bottom: 12px;">Quick Actions</h3>
+            <p style="color: var(--text-muted); line-height: 1.6;">Welcome back! You can manage your daily operations using the sidebar navigation. Check the pending orders queue or verify incoming payments to keep the system up to date.</p>
         </div>
     </main>
 
     <script>
-        // Fetch stats from the server
+        /**
+         * Orchestrates dashboard execution hooks cleanly once DOM elements load
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboardStats();
+        });
+
+        /**
+         * Pulls operational sales aggregates and pending metrics from backend controllers
+         */
         async function loadDashboardStats() {
             try {
                 const res = await fetch('/api/admin/sales');
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP Operational Error Status: ${res.status}`);
+                }
+                
                 const data = await res.json();
                 
-                document.getElementById('total-revenue').innerText = `₱${parseFloat(data.totalSales).toLocaleString()}`;
-                document.getElementById('pending-orders').innerText = data.pendingOrders;
+                // Formats data cleanly with safe fallback defaults if fields are uninitialized
+                const safeTotalSales = parseFloat(data?.totalSales) || 0;
+                const safePendingCount = parseInt(data?.pendingOrders) || 0;
+                
+                document.getElementById('total-revenue').innerText = `₱${safeTotalSales.toLocaleString()}`;
+                document.getElementById('pending-orders').innerText = safePendingCount;
+                
             } catch (err) {
-                console.error("Failed to load dashboard stats:", err);
+                console.error("Failed to gather system operational matrix indicators:", err);
+                // Graceful UI fallback states upon active network or route timeouts
+                document.getElementById('total-revenue').innerText = "₱0";
+                document.getElementById('pending-orders').innerText = "0";
             }
         }
 
-        async function logout() { 
-            await fetch('/api/logout'); 
-            window.location.href = '/login.html'; 
+        /**
+         * Clears active server-side session contexts and handles root dashboard exit redirections
+         * @param {Event} e - Optional event argument targeting component-level intercept defaults
+         */
+        async function logout(e) { 
+            if (e && typeof e.preventDefault === 'function') {
+                e.preventDefault();
+            }
+            
+            try {
+                const res = await fetch('/api/logout');
+                
+                // Safe check matching standard operational backend pipeline handlers
+                if (res.ok || res.status === 200) {
+                    window.location.href = '/login.html'; 
+                } else {
+                    // Fallback redirect if session is already expired or stale
+                    window.location.href = '/login.html';
+                }
+            } catch (err) {
+                console.error("Logout runtime context synchronization failure:", err);
+                // Forced client-side hard navigation override context if connection drops
+                window.location.href = '/login.html';
+            }
         }
-
-        // Run on load
-        window.onload = loadDashboardStats;
     </script>
 </body>
 </html>

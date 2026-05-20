@@ -6,32 +6,60 @@
     <title>Orders Queue - Staff</title>
     <link rel="stylesheet" href="../css/style.css"> 
     <style>
-        .btn-update { background-color: var(--primary); color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
-        .btn-update:hover { background-color: #a0522d; }
+        /* Premium Action Component Overrides matching Clara's Best palette */
+        .btn-update { 
+            background-color: var(--accent); 
+            color: white; 
+            padding: 8px 14px; 
+            border: none; 
+            border-radius: var(--radius-sm); 
+            cursor: pointer; 
+            font-size: 14px; 
+            font-weight: 600;
+            transition: background var(--transition-fast), transform var(--transition-fast);
+        }
+        .btn-update:hover { 
+            background-color: var(--accent-hover); 
+        }
+        .btn-update:active {
+            transform: scale(0.97);
+        }
         
-        /* Dynamic Status Colors */
-        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+        /* Dynamic Status Micro-Badges */
+        .status-badge { 
+            padding: 6px 14px; 
+            border-radius: 50px; 
+            font-size: 0.75rem; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
         .status-pending { background: #fff3cd; color: #856404; }
         .status-prepared { background: #d1ecf1; color: #0c5460; }
         .status-ready { background: #d4edda; color: #155724; }
+        .status-completed { background: #e2e8f0; color: #334155; }
         .status-cancelled { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <h2>Staff Portal</h2>
+        <h2>Clara's Best</h2>
         <a href="staff.html" class="menu-item">Dashboard</a>
         <a href="orders.html" class="menu-item active">Orders</a>
         <a href="reservations.html" class="menu-item">Reservations</a>
         <a href="walk.html" class="menu-item">Walk-in Orders</a>
         <a href="inventory.html" class="menu-item">Inventory</a>
         <a href="payment.html" class="menu-item">Payments</a>
-        <a href="#" onclick="logout()" class="menu-item" style="color:#ff8a8a; margin-top: 50px;">Logout</a>
+        <a href="#" onclick="logout(event)" class="menu-item" style="color:#b91c1c; margin-top: auto;">Logout</a>
     </div>
 
     <main class="content">
-        <h1>Orders Queue</h1>
-        <div class="card">
+        <div class="header-container">
+            <h1 style="font-family: 'Georgia', serif; color: var(--accent); font-size: 2rem; margin-bottom: 20px;">Orders Queue</h1>
+        </div>
+        
+        <div class="table-container">
             <table id="orders-table">
                 <thead>
                     <tr>
@@ -43,33 +71,51 @@
                     </tr>
                 </thead>
                 <tbody id="orders-body">
-                    <tr><td colspan="5">Loading orders...</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">Loading active orders...</td></tr>
                 </tbody>
             </table>
         </div>
     </main>
 
     <script>
+        /**
+         * Initialize foundational event cycles safely once DOM trees are established
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            
+            // Auto-refresh layout queue every 30 seconds cleanly
+            setInterval(loadData, 30000);
+        });
+
+        /**
+         * Dynamic API retrieval loop mapping current server arrays to table views
+         */
         async function loadData() {
             try {
                 const res = await fetch('/api/orders');
+                if (!res.ok) throw new Error(`HTTP Matrix error state: ${res.status}`);
+                
                 const orders = await res.json();
                 const tableBody = document.getElementById('orders-body');
 
-                if (orders.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5">No active orders found.</td></tr>';
+                if (!orders || orders.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">No active orders found.</td></tr>';
                     return;
                 }
 
                 tableBody.innerHTML = orders.map(o => {
-                    // Determine CSS class based on status
-                    const statusClass = `status-${o.order_status.toLowerCase()}`;
+                    const statusText = o.order_status || 'Pending';
+                    const statusClass = `status-${statusText.toLowerCase()}`;
+                    const safeName = escapeHtml(o.customer_name || 'Walk-in Customer');
+                    const safePrice = parseFloat(o.total_price) || 0;
+                    
                     return `
                         <tr>
-                            <td>#${o.id}</td>
-                            <td>${o.customer_name}</td>
-                            <td>₱${parseFloat(o.total_price).toLocaleString()}</td>
-                            <td><span class="status-badge ${statusClass}">${o.order_status}</span></td>
+                            <td><strong>#${o.id}</strong></td>
+                            <td>${safeName}</td>
+                            <td>₱${safePrice.toLocaleString()}</td>
+                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                             <td>
                                 <button class="btn-update" onclick="updateStatus(${o.id})">Update Status</button>
                             </td>
@@ -77,37 +123,70 @@
                     `;
                 }).join('');
             } catch (err) {
-                console.error("Error loading data:", err);
+                console.error("Error loading table dataset context:", err);
+                const tableBody = document.getElementById('orders-body');
+                if (tableBody) {
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #b91c1c;">Failed to load order queue metrics. Verification required.</td></tr>';
+                }
             }
         }
 
+        /**
+         * Modifies pipeline transactional progress updates to server schemas
+         * @param {Number} id - Targeted relational entity reference point
+         */
         async function updateStatus(id) {
             const newStatus = prompt("Enter new status (Pending, Prepared, Ready, Completed, Cancelled):");
             if (!newStatus) return;
 
-            const res = await fetch(`/api/orders/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ order_status: newStatus })
-            });
+            // Trim and standardize string entries securely
+            const cleanStatus = newStatus.trim();
 
-            if (res.ok) {
-                loadData(); // Auto-refresh table after update
-            } else {
-                alert("Failed to update status.");
+            try {
+                const res = await fetch(`/api/orders/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order_status: cleanStatus })
+                });
+
+                if (res.ok) {
+                    loadData(); // Re-index active layout elements instantly
+                } else {
+                    alert("Failed to update system state status flags.");
+                }
+            } catch (err) {
+                console.error("Pipeline transactional update timeout:", err);
+                alert("Network operational conflict encountered. Verify connectivity profiles.");
             }
         }
 
-        async function logout() {
-            await fetch('/api/logout');
-            window.location.href = '/login.html';
+        /**
+         * Discharges active session contexts cleanly and exits back to root interfaces
+         * @param {Event} e - Optional event intercept reference object
+         */
+        async function logout(e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            try {
+                await fetch('/api/logout');
+                window.location.href = '/login.html';
+            } catch (err) {
+                console.error("Logout request dropped:", err);
+                window.location.href = '/login.html'; // Safe fallback navigation state override
+            }
         }
 
-        // Load data on start
-        window.onload = loadData;
-        
-        // Optional: Auto-refresh every 30 seconds
-        setInterval(loadData, 30000);
+        /**
+         * Sanitization logic blocks verifying text input strings for DOM rendering security
+         * @param {String} str - Target value text block
+         */
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
     </script>
 </body>
 </html>
