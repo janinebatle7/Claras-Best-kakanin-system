@@ -27,7 +27,8 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; min-height: 100vh; color: var(--text-dark); }
         
-        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; left: 0; top: 0; }
+        /* Sidebar Styling */
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; left: 0; top: 0; z-index: 100; }
         .sidebar-brand { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 40px; padding-left: 12px; border-left: 4px solid var(--primary-light); }
         .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; flex-grow: 1; }
         .menu-item { display: flex; align-items: center; padding: 14px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-md); transition: var(--transition); }
@@ -35,13 +36,29 @@
         .menu-item.logout-btn { margin-top: auto; color: #dc2626; }
         .menu-item.logout-btn:hover { background-color: #fef2f2; }
 
+        /* Main Content Workspace */
         .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; max-width: 1200px; width: calc(100% - 280px); }
-        .card { background: white; padding: 32px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 24px; }
+        .card { background: white; padding: 32px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 24px; transition: var(--transition); opacity: 0; transform: translateY(10px); }
+        .card.reveal { opacity: 1; transform: translateY(0); }
+        
         .home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
         .welcome-hero { background: linear-gradient(135deg, #451a03 0%, #78350f 100%); color: #ffffff; }
+        .welcome-hero:hover { box-shadow: 0 10px 30px rgba(120, 53, 15, 0.15); }
+        
         .btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 24px; font-size: 14px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; text-decoration: none; transition: var(--transition); }
+        .btn:active { transform: scale(0.98); }
         .btn-primary { background-color: white; color: var(--primary); }
+        .btn-primary:hover { background-color: var(--primary-accent); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        
         .badge { display: inline-flex; align-items: center; padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 30px; text-transform: uppercase; background-color: #fef9c3; color: var(--warning); }
+        
+        /* Live Tracking Pulse */
+        .pulse-indicator { width: 8px; height: 8px; background-color: var(--primary-light); border-radius: 50%; display: inline-block; margin-right: 6px; animate: pulse 1.8s infinite ease-in-out; vertical-align: middle; }
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0.5; }
+        }
     </style>
 </head>
 <body>
@@ -61,12 +78,14 @@
     </nav>
 
     <main class="main-content">
-        <div class="content-header" style="margin-bottom: 32px;"><h2>Welcome Back, Ka-Clara! 👋</h2></div>
+        <div class="content-header" style="margin-bottom: 32px;">
+            <h2 id="dynamic-greeting">Welcome Back, Ka-Clara! 👋</h2>
+        </div>
         
         <div class="card" id="live-tracker-banner" style="display: none; background: #fffbeb; border-left: 4px solid var(--primary-light);">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
                 <div>
-                    <span class="badge">Live Fulfillment Tracking</span>
+                    <span class="badge"><span class="pulse-indicator"></span>Live Fulfillment Tracking</span>
                     <h3 style="margin-top: 8px; font-size: 18px;">Ticket #<span id="track-id">----</span></h3>
                     <p style="font-size: 14px; color: var(--text-muted); margin-top: 4px;">Status: <strong id="track-status" style="color: var(--primary-light);">Checking...</strong></p>
                 </div>
@@ -100,6 +119,8 @@
          * Safely orchestrates foundational dashboard tracking dependencies when DOM trees finalize parsing
          */
         document.addEventListener('DOMContentLoaded', () => {
+            applyDynamicGreeting();
+            revealDashboardComponents();
             fetchLatestTrackingState();
             
             const logoutLink = document.getElementById('logout-link');
@@ -107,6 +128,35 @@
                 logoutLink.addEventListener('click', processLogout);
             }
         });
+
+        /**
+         * Enhances visual appearance with subtle entry delays across elements
+         */
+        function revealDashboardComponents() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, idx) => {
+                setTimeout(() => {
+                    card.classList.add('reveal');
+                }, idx * 80);
+            });
+        }
+
+        /**
+         * Personalizes header text dynamically based on local user timeframe parameters
+         */
+        function applyDynamicGreeting() {
+            const greetingHeading = document.getElementById('dynamic-greeting');
+            if (!greetingHeading) return;
+            
+            const hours = new Date().getHours();
+            let timeGreet = "Welcome Back";
+            
+            if (hours < 12) timeGreet = "Good Morning";
+            else if (hours < 18) timeGreet = "Good Afternoon";
+            else timeGreet = "Good Evening";
+            
+            greetingHeading.innerText = `${timeGreet}, Ka-Clara! 👋`;
+        }
 
         /**
          * Scans current purchase list arrays and displays active tracking notices if items are inside production pipelines
@@ -128,12 +178,26 @@
                         const trackStatusDisplay = document.getElementById('track-status');
                         
                         if (banner && trackIdDisplay && trackStatusDisplay) {
-                            const orderType = live.order_type || live.type || 'Order';
-                            const orderStatus = live.order_status || 'Pending';
+                            const orderType = escapeHtml(live.order_type || live.type || 'Order');
+                            const orderStatus = escapeHtml(live.order_status || 'Pending');
                             
-                            trackIdDisplay.innerText = live.id;
+                            trackIdDisplay.innerText = escapeHtml(String(live.id));
                             trackStatusDisplay.innerText = `${orderType} - [${orderStatus}]`;
+                            
+                            // Color code contextual text indicators dynamically based on back-end state
+                            if (orderStatus.toLowerCase() === 'pending') {
+                                trackStatusDisplay.style.color = '#ca8a04';
+                            } else if (orderStatus.toLowerCase() === 'preparing') {
+                                trackStatusDisplay.style.color = '#0284c7';
+                            } else if (orderStatus.toLowerCase() === 'ready') {
+                                trackStatusDisplay.style.color = '#16a34a';
+                            } else {
+                                trackStatusDisplay.style.color = 'var(--primary-light)';
+                            }
+
                             banner.style.display = 'block';
+                            // Triggers visual intro on the tracker layout container frame
+                            setTimeout(() => banner.classList.add('reveal'), 50);
                         }
                     }
                 }
@@ -163,6 +227,18 @@
                 alert("Network operational conflict encountered. Forcing interface redirect.");
                 window.location.href = '/login.html'; // Invariant fallback redirect path
             }
+        }
+
+        /**
+         * Escapes structural strings safely to prevent script injections
+         */
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
     </script>
 </body>

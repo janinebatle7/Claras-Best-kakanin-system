@@ -4,30 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clara's Best - Orders</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #78350f; --primary-light: #b45309; --primary-accent: #fef3c7; --bg-main: #fafaf9; --sidebar-bg: #ffffff; --border: #e7e5e4; --radius-lg: 16px; --radius-sm: 8px; }
+        :root { 
+            --primary: #78350f; 
+            --primary-light: #b45309; 
+            --primary-accent: #fef3c7; 
+            --bg-main: #fafaf9; 
+            --sidebar-bg: #ffffff; 
+            --text-dark: #1c1917;
+            --text-muted: #78716c;
+            --border: #e7e5e4; 
+            --radius-lg: 16px; 
+            --radius-md: 12px;
+            --radius-sm: 8px; 
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; min-height: 100vh; color: var(--text-dark); }
         
-        /* Sidebar */
-        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; }
+        /* Sidebar Menu Navigation Frame */
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; left: 0; top: 0; z-index: 100; }
         .sidebar-brand { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 40px; padding-left: 12px; border-left: 4px solid var(--primary-light); }
-        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; }
-        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: #78716c; text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-sm); }
+        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; flex-grow: 1; }
+        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-md); transition: var(--transition); }
         .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); }
+        .menu-item.logout-btn { margin-top: auto; color: #dc2626; }
+        .menu-item.logout-btn:hover { background-color: #fef2f2; }
         
-        /* Content */
-        .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; }
-        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-        .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; min-width: 600px; }
-        .data-table th, .data-table td { padding: 20px; border-bottom: 1px solid var(--border); }
-        .data-table th { background: #faf9f6; color: var(--primary); font-weight: 700; }
+        /* Content Workspace Viewport Window */
+        .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; max-width: 1200px; width: calc(100% - 280px); }
         
-        /* Badges */
-        .badge { display: inline-flex; padding: 4px 12px; font-size: 11px; font-weight: 800; border-radius: 20px; text-transform: uppercase; }
-        .badge-approved { background: #dcfce7; color: #16a34a; }
-        .badge-pending { background: #fef9c3; color: #ca8a04; }
+        /* Data Display Table Containers */
+        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); background: white; box-shadow: 0 4px 20px rgba(120, 53, 15, 0.02); opacity: 0; transform: translateY(10px); transition: var(--transition); }
+        .table-responsive.reveal { opacity: 1; transform: translateY(0); }
+        
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; min-width: 750px; }
+        .data-table th, .data-table td { padding: 18px 24px; border-bottom: 1px solid var(--border); }
+        .data-table th { background: #faf9f6; color: var(--primary); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* Status Tracking Contextual Badges */
+        .badge { display: inline-flex; padding: 6px 14px; font-size: 11px; font-weight: 800; border-radius: 30px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-approved { background: #f0fdf4; color: #16a34a; }   /* Completed / Paid States */
+        .badge-pending { background: #fffbeb; color: #b45309; }    /* Standard Processing States */
+        .badge-preparing { background: #f0f9ff; color: #0284c7; }  /* Active Production Queue */
+        .badge-cancelled { background: #fef2f2; color: #dc2626; }  /* Dropped / Reversed States */
+        
+        /* Micro-animation transitions */
+        .order-row { opacity: 0; transform: translateY(6px); transition: var(--transition); }
+        .order-row.visible { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body>
@@ -42,57 +67,140 @@
             <li><a href="cancellation.html" class="menu-item">Cancellations</a></li>
             <li><a href="payment.html" class="menu-item">Payments</a></li>
             <li><a href="profile.html" class="menu-item">Profile</a></li>
-            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)">Logout</a></li>
+            <li class="logout-btn"><a href="#logout" class="menu-item logout-btn" id="logout-trigger">Logout</a></li>
         </ul>
     </nav>
+    
     <main class="main-content">
-        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px;">Standard Purchases Tracker</h2>
-        <div class="table-responsive">
+        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px; font-family: 'Georgia', serif; color: var(--primary);">Standard Purchases Tracker</h2>
+        
+        <div class="table-responsive" id="table-wrapper">
             <table class="data-table">
-                <thead><tr><th>Order ID</th><th>Date Placed</th><th>Grand Total</th><th>Order Status</th><th>Payment Status</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Date Placed</th>
+                        <th>Grand Total</th>
+                        <th>Order Status</th>
+                        <th>Payment Status</th>
+                    </tr>
+                </thead>
                 <tbody id="orders-tbody">
-                    <tr><td colspan="5" style="text-align:center;">Loading your orders...</td></tr>
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding: 40px 0; color: var(--text-muted); font-style: italic;">
+                            Loading operational data feeds...
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </main>
 
     <script>
+        /**
+         * Orchestrates workspace data loading routines when structural parsing cycles conclude
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            loadOrders();
+
+            const logoutBtn = document.getElementById('logout-trigger');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', processLogout);
+            }
+        });
+
+        /**
+         * Asynchronously fetches order histories and structures the interface dynamic table layout
+         */
         async function loadOrders() {
             const tbody = document.getElementById('orders-tbody');
+            const wrapper = document.getElementById('table-wrapper');
+            if (!tbody) return;
+
             try {
                 const res = await fetch('/api/orders');
-                if (!res.ok) throw new Error('Failed to fetch');
+                if (!res.ok) throw new Error(`HTTP data transfer error state: ${res.status}`);
                 
                 const data = await res.json();
                 tbody.innerHTML = '';
                 
+                if (wrapper) wrapper.classList.add('reveal');
+                
+                // Isolates traditional real-time check purchases from advanced system event reservations
                 const orders = data.filter(t => t.type === 'Order');
                 
-                if (orders.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px 0;">No purchase records found.</td></tr>`;
+                if (!orders || orders.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px 0; color: var(--text-muted); font-style: italic;">No purchase records found.</td></tr>`;
                     return;
                 }
                 
-                orders.forEach(t => {
-                    const rowDate = new Date(t.created_at).toLocaleDateString();
-                    const sClass = t.order_status === 'Completed' ? 'badge-approved' : 'badge-pending';
-                    const pClass = t.payment_status === 'Paid' ? 'badge-approved' : 'badge-pending';
+                const tableFragment = document.createDocumentFragment();
+                
+                orders.forEach((t, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'order-row';
                     
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><strong>#${t.id}</strong></td>
-                            <td>${rowDate}</td>
-                            <td>₱${parseFloat(t.total_amount).toFixed(2)}</td>
-                            <td><span class="badge ${sClass}">${t.order_status || 'Pending'}</span></td>
-                            <td><span class="badge ${pClass}">${t.payment_status || 'Unpaid'}</span></td>
-                        </tr>`;
+                    const safeId = escapeHtml(String(t.id));
+                    const rowDate = t.created_at ? new Date(t.created_at).toLocaleDateString() : 'N/A';
+                    const displayTotal = (parseFloat(t.total_amount) || 0).toFixed(2);
+                    
+                    const rawOrderStatus = t.order_status || 'Pending';
+                    const rawPaymentStatus = t.payment_status || 'Unpaid';
+                    
+                    // Maps appropriate semantic tracking classes
+                    const sClass = getStatusBadgeClass(rawOrderStatus);
+                    const pClass = getPaymentBadgeClass(rawPaymentStatus);
+                    
+                    tr.innerHTML = `
+                        <td><strong>#${safeId}</strong></td>
+                        <td style="color: var(--text-muted);">${rowDate}</td>
+                        <td style="font-weight: 700; color: var(--primary-light);">₱${displayTotal}</td>
+                        <td><span class="badge ${sClass}">${escapeHtml(rawOrderStatus)}</span></td>
+                        <td><span class="badge ${pClass}">${escapeHtml(rawPaymentStatus)}</span></td>
+                    `;
+                    
+                    tableFragment.appendChild(tr);
+                    
+                    // Staggered presentation animations
+                    setTimeout(() => tr.classList.add('visible'), idx * 35);
                 });
+                
+                tbody.appendChild(tableFragment);
             } catch(err) { 
-                console.error(err); 
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Error loading orders.</td></tr>`;
+                console.error("Critical interruption running database logs compiling parser:", err); 
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:32px 0; color:#dc2626; font-weight:600;">Failed to restore purchase logging indexes.</td></tr>`;
+                if (wrapper) wrapper.classList.add('reveal');
             }
         }
+
+        /**
+         * Resolves production pipeline string arguments into visual CSS structures
+         */
+        function getStatusBadgeClass(status) {
+            switch(String(status).toLowerCase()) {
+                case 'completed': return 'badge-approved';
+                case 'preparing': return 'badge-preparing';
+                case 'cancelled': 
+                case 'rejected':  return 'badge-cancelled';
+                default:          return 'badge-pending';
+            }
+        }
+
+        /**
+         * Resolves transactional invoice arguments into visual CSS structures
+         */
+        function getPaymentBadgeClass(status) {
+            switch(String(status).toLowerCase()) {
+                case 'paid':      return 'badge-approved';
+                case 'refunded':  return 'badge-preparing';
+                case 'failed':    return 'badge-cancelled';
+                default:          return 'badge-pending'; // For Unpaid / Checking processes
+            }
+        }
+
+        /**
+         * Requests operational route contexts to break system connection streams
+         */
         async function processLogout(event) {
             event.preventDefault();
             if (!confirm("Are you sure you want to end your current session and sign out?")) return;
@@ -101,14 +209,27 @@
                 const check = await fetch('/api/logout');
                 if (check.ok) {
                     alert("Logged out successfully.");
-                    // Updated from local template location string to direct absolute root endpoint route context
                     window.location.href = '/login.html';
+                } else {
+                    alert("Session cancellation failed. Re-authenticate configuration.");
                 }
             } catch (error) {
-                console.error("Logout runtime error network connection failure:", error);
+                console.error("Logout runtime interrupt encountered:", error);
+                window.location.href = '/login.html'; // Protective escape target
             }
         }
-        window.addEventListener('DOMContentLoaded', loadOrders);
+
+        /**
+         * Safe markup compiler logic shielding visual fields from code string evaluation
+         */
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
     </script>
 </body>
 </html>

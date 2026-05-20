@@ -2,26 +2,59 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clara's Best - Payments</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #78350f; --primary-light: #b45309; --primary-accent: #fef3c7; --bg-main: #fafaf9; --sidebar-bg: #ffffff; --border: #e7e5e4; --radius-lg: 16px; --radius-sm: 8px; }
+        :root { 
+            --primary: #78350f; 
+            --primary-light: #b45309; 
+            --primary-accent: #fef3c7; 
+            --bg-main: #fafaf9; 
+            --sidebar-bg: #ffffff; 
+            --text-dark: #1c1917;
+            --text-muted: #78716c;
+            --border: #e7e5e4; 
+            --radius-lg: 16px; 
+            --radius-md: 12px;
+            --radius-sm: 8px; 
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; }
-        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; min-height: 100vh; color: var(--text-dark); }
+        
+        /* Sidebar Navigation Menu Layout Frame */
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; left: 0; top: 0; z-index: 100; }
         .sidebar-brand { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 40px; padding-left: 12px; border-left: 4px solid var(--primary-light); }
-        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; }
-        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: #78716c; text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-sm); }
+        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; flex-grow: 1; }
+        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-md); transition: var(--transition); }
         .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); }
-        .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; }
-        .card { background: white; padding: 32px; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 24px; }
+        .menu-item.logout-btn { margin-top: auto; color: #dc2626; }
+        .menu-item.logout-btn:hover { background-color: #fef2f2; }
+
+        /* Workspace Core Window Wrapper */
+        .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; max-width: 1200px; width: calc(100% - 280px); }
+        .card { background: white; padding: 32px; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 32px; box-shadow: 0 4px 20px rgba(120, 53, 15, 0.02); }
+        
+        /* Interactive Input Form Component Layout elements */
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
-        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
-        .btn { padding: 12px 24px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; background: var(--primary-light); color: white; }
-        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; }
+        .form-group label { display: block; font-size: 12px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; color: var(--text-dark); background-color: #ffffff; transition: var(--transition); }
+        .form-control:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1); }
+        
+        /* Form Action Buttons */
+        .btn { padding: 14px 28px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; background: var(--primary-light); color: white; transition: var(--transition); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; width: 100%; }
+        .btn:hover { background: var(--primary); box-shadow: 0 4px 12px rgba(120, 53, 15, 0.15); }
+        .btn:active { transform: scale(0.99); }
+        
+        /* Ledgers & Financial Record Output Presentation styling */
+        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); background: white; box-shadow: 0 4px 20px rgba(120, 53, 15, 0.02); }
         .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
         .data-table th, .data-table td { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+        .data-table th { background: #faf9f6; color: var(--primary); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .payment-row { opacity: 0; transform: translateY(6px); transition: var(--transition); }
+        .payment-row.visible { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body>
@@ -36,52 +69,187 @@
             <li><a href="cancellation.html" class="menu-item">Cancellations</a></li>
             <li><a href="payment.html" class="menu-item active">Payments</a></li>
             <li><a href="profile.html" class="menu-item">Profile</a></li>
-            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)">Logout</a></li>
+            <li class="logout-btn"><a href="#logout" class="menu-item logout-btn" id="logout-trigger">Logout</a></li>
         </ul>
     </nav>
+    
     <main class="main-content">
-        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px;">Payments Registry</h2>
+        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px; font-family: 'Georgia', serif; color: var(--primary);">Payments Registry</h2>
+        
         <div class="card">
-            <h3 style="font-size:16px; margin-bottom:16px;">Verify GCash Remittance Receipt</h3>
-            <div class="form-group"><label>Order / Reservation ID</label><input type="number" id="pay-order-id" class="form-control"></div>
-            <div class="form-group"><label>13-Digit Reference Token String</label><input type="text" id="pay-ref" class="form-control"></div>
-            <div class="form-group"><label>Proof Screenshot Layout File</label><input type="file" id="pay-file" class="form-control" accept="image/*"></div>
-            <button class="btn" onclick="submitPayment()">Upload Verified Remittance</button>
+            <h3 style="font-size:16px; margin-bottom:20px; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px;">
+                Verify GCash Remittance Receipt
+            </h3>
+            <div class="form-group">
+                <label for="pay-order-id">Order / Reservation ID</label>
+                <input type="number" id="pay-order-id" class="form-control" placeholder="e.g. 1024">
+            </div>
+            <div class="form-group">
+                <label for="pay-ref">13-Digit Reference Token String</label>
+                <input type="text" id="pay-ref" class="form-control" placeholder="e.g. 0123456789123" maxlength="13">
+            </div>
+            <div class="form-group">
+                <label for="pay-file">Proof Screenshot Layout File</label>
+                <input type="file" id="pay-file" class="form-control" accept="image/*">
+            </div>
+            <button class="btn" id="btn-submit-payment">Upload Verified Remittance</button>
         </div>
+        
         <div class="table-responsive">
             <table class="data-table">
-                <thead><tr><th>Payment Token</th><th>Invoice ID</th><th>Amount Settled</th><th>Timestamp Execution</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Payment Token</th>
+                        <th>Invoice ID</th>
+                        <th>Amount Settled</th>
+                        <th>Timestamp Execution</th>
+                    </tr>
+                </thead>
                 <tbody id="payments-tbody"></tbody>
             </table>
         </div>
     </main>
 
     <script>
+        /**
+         * Safely parameters setup hooks when document content trees pass compilation state
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPayments();
+
+            const paymentBtn = document.getElementById('btn-submit-payment');
+            if (paymentBtn) {
+                paymentBtn.addEventListener('click', submitPayment);
+            }
+
+            const logoutBtn = document.getElementById('logout-trigger');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', processLogout);
+            }
+            
+            // Subtle formatting layer for structural inputs
+            const refInput = document.getElementById('pay-ref');
+            if (refInput) {
+                refInput.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, ''); // Numeric locks only
+                });
+            }
+        });
+
+        /**
+         * Fetches remittance objects through active validation endpoints
+         */
         async function loadPayments() {
             try {
                 const res = await fetch('/api/payments/history');
+                if (!res.ok) throw new Error(`HTTP transaction fault status mapping: ${res.status}`);
+                
                 const lines = await res.json();
                 const tbody = document.getElementById('payments-tbody');
+                if (!tbody) return;
+
                 tbody.innerHTML = '';
-                if(lines.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px 0;">No historic ledger records.</td></tr>`;
+                
+                if (!lines || lines.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:32px 0; color:var(--text-muted); font-style:italic;">No historic ledger records found.</td></tr>`;
                     return;
                 }
-                lines.forEach(l => {
-                    tbody.innerHTML += `<tr><td><strong>TXN-${l.id}</strong></td><td>#${l.order_id}</td><td>₱${parseFloat(l.amount_paid).toFixed(2)}</td><td>${new Date(l.paid_at).toLocaleString()}</td></tr>`;
+                
+                const executionFragment = document.createDocumentFragment();
+
+                lines.forEach((l, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'payment-row';
+                    
+                    const safeTxnId = escapeHtml(String(l.id));
+                    const safeOrderId = escapeHtml(String(l.order_id));
+                    const safeAmount = (parseFloat(l.amount_paid) || 0).toFixed(2);
+                    
+                    let formattedDate = 'N/A';
+                    if (l.paid_at) {
+                        formattedDate = new Date(l.paid_at).toLocaleString();
+                    }
+
+                    tr.innerHTML = `
+                        <td><strong>TXN-${safeTxnId}</strong></td>
+                        <td>#${safeOrderId}</td>
+                        <td style="font-weight: 600; color: #16a34a;">₱${safeAmount}</td>
+                        <td style="color: var(--text-muted);">${formattedDate}</td>
+                    `;
+                    
+                    executionFragment.appendChild(tr);
+                    
+                    // Staggered component entry microtask triggers
+                    setTimeout(() => tr.classList.add('visible'), idx * 35);
                 });
-            } catch(err) { console.error(err); }
+
+                tbody.appendChild(executionFragment);
+            } catch(err) { 
+                console.error("Critical fault parsing transaction tracking registry elements:", err); 
+            }
         }
+
+        /**
+         * Processes upload form validation constraints before calling service gateways
+         */
         async function submitPayment() {
-            const order_id = document.getElementById('pay-order-id').value;
-            const ref = document.getElementById('pay-ref').value;
-            const file = document.getElementById('pay-file').value;
-            if(!order_id || !ref || !file) return alert("Populate all options fields!");
+            const orderIdInput = document.getElementById('pay-order-id');
+            const refInput = document.getElementById('pay-ref');
+            const fileInput = document.getElementById('pay-file');
+            
+            if (!orderIdInput || !refInput || !fileInput) return;
+
+            const order_id = orderIdInput.value.trim();
+            const ref = refInput.value.trim();
+            const fileElement = fileInput.files[0];
+
+            if (!order_id || !ref || !fileElement) {
+                alert("Please populate all option fields and choose a receipt image file.");
+                return;
+            }
+
+            if (ref.length !== 13) {
+                alert("GCash reference numbers must accurately contain exactly 13 numeric positions.");
+                return;
+            }
+
+            // Extracts native filesystem naming strings safely without path leakage configurations
+            const realFileName = fileElement.name.replace(/\s+/g, '_');
+            const outputPayloadName = `receipt_${order_id}_${Date.now()}_${realFileName}`;
+
+            const payload = { 
+                reference_number: ref, 
+                proof_image_name: outputPayloadName 
+            };
+
             try {
-                const res = await fetch(`/api/orders/${order_id}/payment`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reference_number: ref, proof_image_name: 'receipt_' + order_id + '.jpg' }) });
-                if (res.ok) { alert("Payment sent."); loadPayments(); }
-            } catch(err) { console.error(err); }
+                const res = await fetch(`/api/orders/${order_id}/payment`, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(payload) 
+                });
+                
+                if (res.ok) { 
+                    alert("✨ Payment details matched and logged successfully!");
+                    // Reset input elements
+                    orderIdInput.value = '';
+                    refInput.value = '';
+                    fileInput.value = '';
+                    
+                    loadPayments(); 
+                } else {
+                    const errContext = await res.json();
+                    alert("Verification Failed: " + (errContext.error || "Server declined transactional payload layout parameters."));
+                }
+            } catch(err) { 
+                console.error("Critical channel interrupt updating billing receipt indexes:", err); 
+                alert("Failed to reach processing engine network channels.");
+            }
         }
+
+        /**
+         * Terminates the existing active session
+         */
         async function processLogout(event) {
             event.preventDefault();
             if (!confirm("Are you sure you want to end your current session and sign out?")) return;
@@ -90,14 +258,27 @@
                 const check = await fetch('/api/logout');
                 if (check.ok) {
                     alert("Logged out successfully.");
-                    // Updated from local template location string to direct absolute root endpoint route context
                     window.location.href = '/login.html';
+                } else {
+                    alert("Logout failed. Please try again.");
                 }
             } catch (error) {
-                console.error("Logout runtime error network connection failure:", error);
+                console.error("Logout execution network lifecycle fault:", error);
+                window.location.href = '/login.html'; // Safe fallback context line
             }
         }
-        window.addEventListener('DOMContentLoaded', loadPayments);
+
+        /**
+         * Escapes raw dataset properties safely before appending to visible nodes
+         */
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
     </script>
 </body>
 </html>

@@ -4,9 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clara's Best - Products</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #78350f; --primary-light: #b45309; --primary-accent: #fef3c7; --bg-main: #fafaf9; --sidebar-bg: #ffffff; --text-dark: #1c1917; --text-muted: #78716c; --border: #e7e5e4; --radius-lg: 16px; --radius-sm: 8px; }
+        :root { 
+            --primary: #78350f; 
+            --primary-light: #b45309; 
+            --primary-accent: #fef3c7; 
+            --bg-main: #fafaf9; 
+            --sidebar-bg: #ffffff; 
+            --text-dark: #1c1917; 
+            --text-muted: #78716c; 
+            --border: #e7e5e4; 
+            --radius-lg: 16px; 
+            --radius-md: 12px;
+            --radius-sm: 8px; 
+            --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; }
         
@@ -14,18 +27,76 @@
         .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; }
         .sidebar-brand { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 40px; padding-left: 12px; border-left: 4px solid var(--primary-light); }
         .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; }
-        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-sm); transition: 0.2s; }
+        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-sm); transition: var(--transition-smooth); }
         .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); }
         
-        /* Main Content */
+        /* Main Content Grid */
         .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; min-height: 100vh; }
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
-        .product-card { background: white; padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.2s; }
-        .product-card:hover { transform: translateY(-5px); border-color: var(--primary-light); }
-        .product-price { font-size: 20px; font-weight: 800; color: var(--primary-light); margin: 16px 0; }
-        .btn { padding: 12px 24px; font-size: 14px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; background-color: var(--primary-light); color: white; width: 100%; transition: background 0.2s; }
+        
+        /* Premium Card Layout Structure */
+        .product-card { 
+            background: white; 
+            padding: 16px; 
+            border-radius: var(--radius-lg); 
+            border: 1px solid var(--border); 
+            display: flex; 
+            flex-direction: column; 
+            transition: var(--transition-smooth); 
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .product-card.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .product-card:hover { 
+            transform: translateY(-5px); 
+            border-color: var(--primary-light); 
+            box-shadow: 0 10px 25px -5px rgba(120, 53, 15, 0.08);
+        }
+
+        /* Responsive Product Image Canvas */
+        .image-container {
+            width: 100%;
+            height: 180px;
+            border-radius: var(--radius-md);
+            background-color: #f5f5f4;
+            overflow: hidden;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 1px solid #f1f0ee;
+        }
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .product-card:hover .product-image {
+            transform: scale(1.05);
+        }
+        
+        .product-price { font-size: 20px; font-weight: 800; color: var(--primary-light); margin: 12px 0 16px 0; }
+        
+        .btn { 
+            padding: 12px 24px; 
+            font-size: 14px; 
+            font-weight: 700; 
+            border: none; 
+            border-radius: var(--radius-sm); 
+            cursor: pointer; 
+            background-color: var(--primary-light); 
+            color: white; 
+            width: 100%; 
+            transition: var(--transition-smooth); 
+        }
         .btn:hover { background-color: var(--primary); }
-        .loading-text { color: var(--text-muted); font-style: italic; }
+        .btn:active { transform: scale(0.97); }
+        .loading-text { color: var(--text-muted); font-style: italic; grid-column: 1 / -1; }
     </style>
 </head>
 <body>
@@ -40,63 +111,135 @@
             <li><a href="cancellation.html" class="menu-item">Cancellations</a></li>
             <li><a href="payment.html" class="menu-item">Payments</a></li>
             <li><a href="profile.html" class="menu-item">Profile</a></li>
-            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)">Logout</a></li>
+            <li class="logout-btn"><a href="#logout" class="menu-item" id="logout-trigger">Logout</a></li>
         </ul>
     </nav>
     
     <main class="main-content">
-        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px;">Our Premium Menu</h2>
+        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px; font-family: 'Georgia', serif; color: var(--primary);">Our Premium Menu</h2>
         <div class="product-grid" id="products-container">
             <p class="loading-text">Fetching fresh delicacies from our kitchen...</p>
         </div>
     </main>
 
     <script>
-        // Fetch products from your backend API
+        /**
+         * Securely initialises listeners once parsing pipelines complete
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProducts();
+            
+            const logoutBtn = document.getElementById('logout-trigger');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', processLogout);
+            }
+        });
+
+        /**
+         * Queries menu items from endpoints and streams them down through high-speed fragment pipelines
+         */
         async function loadProducts() {
+            const container = document.getElementById('products-container');
             try {
                 const res = await fetch('/api/products');
-                if (!res.ok) throw new Error('Failed to fetch');
+                if (!res.ok) throw new Error('Catalog service connection loss');
                 
                 const products = await res.json();
-                const container = document.getElementById('products-container');
+                if (!container) return;
+                
                 container.innerHTML = '';
                 
-                if (products.length === 0) {
-                    container.innerHTML = '<p>No products available right now.</p>';
+                if (!products || products.length === 0) {
+                    container.innerHTML = '<p class="loading-text">No products available right now.</p>';
                     return;
                 }
 
-                products.forEach(p => {
-                    container.innerHTML += `
-                        <div class="product-card">
-                            <h3 style="font-size:16px; font-weight:700;">${p.name}</h3>
-                            <p style="font-size:13.5px; color:var(--text-muted); flex-grow:1; margin-top:6px; line-height:1.5;">${p.description || 'A delicious homemade delicacy.'}</p>
-                            <p class="product-price">₱${parseFloat(p.price).toFixed(2)}</p>
-                            <button class="btn" onclick="addToCart(${p.id}, '${p.name}', ${p.price})">Add to Cart</button>
-                        </div>`;
+                // Document Fragment container isolates processing overhead from DOM rendering loops
+                const catalogFragment = document.createDocumentFragment();
+
+                products.forEach((p, idx) => {
+                    const priceVal = parseFloat(p.price) || 0;
+                    const safeName = escapeHtml(p.name || 'Homemade Delicacy');
+                    const safeDesc = escapeHtml(p.description || 'A delicious homemade delicacy.');
+                    
+                    // Detect potential varying dynamic database fields assigned for images
+                    const imgSrc = p.image || p.image_path || p.image_url || '';
+                    
+                    // Escapes internal names containing single quotes to preserve inline click actions safely
+                    const jsSafeName = p.name ? p.name.replace(/'/g, "\\'") : 'Product';
+
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.innerHTML = `
+                        <div class="image-container">
+                            <img class="product-image" 
+                                 src="${imgSrc}" 
+                                 alt="${safeName}" 
+                                 loading="lazy" 
+                                 onerror="handleImageFallback(this)">
+                        </div>
+                        <h3 style="font-size:16px; font-weight:700; color: var(--text-dark);">${safeName}</h3>
+                        <p style="font-size:13.5px; color:var(--text-muted); flex-grow:1; margin-top:6px; line-height:1.5;">${safeDesc}</p>
+                        <p class="product-price">₱${priceVal.toFixed(2)}</p>
+                        <button class="btn" onclick="addToCart(${parseInt(p.id)}, '${jsSafeName}', ${priceVal})">Add to Cart</button>
+                    `;
+
+                    catalogFragment.appendChild(card);
+                    
+                    // Cascade entrance animations gracefully using microtask spacing
+                    setTimeout(() => card.classList.add('loaded'), idx * 60);
                 });
+
+                container.appendChild(catalogFragment);
+
             } catch (err) { 
-                console.error(err); 
-                document.getElementById('products-container').innerHTML = '<p style="color:red;">Error loading products. Please check if your server is running.</p>';
+                console.error("Pipeline failure displaying backend stock components:", err); 
+                if (container) {
+                    container.innerHTML = '<p style="color:#b91c1c; font-weight: 600;">Error loading products. Please check if your server is running.</p>';
+                }
             }
         }
 
-        // Keep existing Add to Cart logic
-        function addToCart(id, name, price) {
-            let cart = JSON.parse(localStorage.getItem('userCart')) || [];
-            const idx = cart.findIndex(item => item.product_id === id);
+        /**
+         * Safely injects an elegant SVG fallback element if image paths are invalid or empty
+         * @param {HTMLImageElement} imageEl - Broken image instance targeting layout
+         */
+        function handleImageFallback(imageEl) {
+            imageEl.onerror = null; // Stops infinite replacement execution loops
             
-            if (idx > -1) {
-                cart[idx].quantity += 1;
-            } else {
-                cart.push({ product_id: id, name, price: parseFloat(price), quantity: 1 });
-            }
-            
-            localStorage.setItem('userCart', JSON.stringify(cart));
-            alert(`${name} added to cart!`);
+            // Replaces image placeholder with clean, premium styled cake/delicacy vector code
+            imageEl.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%23b45309" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`;
+            imageEl.style.width = '40px';
+            imageEl.style.height = '40px';
+            imageEl.style.objectFit = 'contain';
+            imageEl.parentElement.style.backgroundColor = '#fef3c7'; // Uses branding colors for empty cards
         }
-async function processLogout(event) {
+
+        /**
+         * Appends product data to localStorage cart collections smoothly
+         */
+        function addToCart(id, name, price) {
+            try {
+                let cart = JSON.parse(localStorage.getItem('userCart')) || [];
+                const idx = cart.findIndex(item => item.product_id === id);
+                
+                if (idx > -1) {
+                    cart[idx].quantity += 1;
+                } else {
+                    cart.push({ product_id: parseInt(id), name, price: parseFloat(price), quantity: 1 });
+                }
+                
+                localStorage.setItem('userCart', JSON.stringify(cart));
+                alert(`✨ ${name} added to cart!`);
+            } catch (e) {
+                console.error("Local state compilation failure:", e);
+            }
+        }
+
+        /**
+         * Discharges security parameters and pushes viewport contextual frames to entrance logins
+         */
+        async function processLogout(event) {
             event.preventDefault();
             if (!confirm("Are you sure you want to end your current session and sign out?")) return;
 
@@ -104,14 +247,27 @@ async function processLogout(event) {
                 const check = await fetch('/api/logout');
                 if (check.ok) {
                     alert("Logged out successfully.");
-                    // Updated from local template location string to direct absolute root endpoint route context
                     window.location.href = '/login.html';
+                } else {
+                    alert("Logout routine rejected. Retrying clearance...");
                 }
             } catch (error) {
-                console.error("Logout runtime error network connection failure:", error);
+                console.error("Logout network channel interrupt caught:", error);
+                window.location.href = '/login.html'; // Fallback force routing line override
             }
         }
-        window.addEventListener('DOMContentLoaded', loadProducts);
+
+        /**
+         * Simple string sanitization context parser preventing layout breaks
+         */
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
     </script>
 </body>
 </html>

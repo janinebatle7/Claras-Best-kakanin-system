@@ -2,27 +2,63 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clara's Best - Cancellations</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #78350f; --primary-light: #b45309; --primary-accent: #fef3c7; --bg-main: #fafaf9; --sidebar-bg: #ffffff; --border: #e7e5e4; --radius-lg: 16px; --radius-sm: 8px; }
+        :root { 
+            --primary: #78350f; 
+            --primary-light: #b45309; 
+            --primary-accent: #fef3c7; 
+            --bg-main: #fafaf9; 
+            --sidebar-bg: #ffffff; 
+            --text-dark: #1c1917;
+            --text-muted: #78716c;
+            --border: #e7e5e4; 
+            --radius-lg: 16px; 
+            --radius-md: 12px;
+            --radius-sm: 8px; 
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; }
-        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; min-height: 100vh; color: var(--text-dark); }
+        
+        /* Sidebar Layout Frame */
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; left: 0; top: 0; z-index: 100; }
         .sidebar-brand { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 40px; padding-left: 12px; border-left: 4px solid var(--primary-light); }
-        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; }
-        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: #78716c; text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-sm); }
+        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; flex-grow: 1; }
+        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-md); transition: var(--transition); }
         .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); }
-        .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; }
-        .card { background: white; padding: 32px; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 24px; }
+        .menu-item.logout-btn { margin-top: auto; color: #dc2626; }
+        .menu-item.logout-btn:hover { background-color: #fef2f2; }
+
+        /* Content Workspace */
+        .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; max-width: 1200px; width: calc(100% - 280px); }
+        .card { background: white; padding: 32px; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 32px; box-shadow: 0 4px 20px rgba(120, 53, 15, 0.02); transition: var(--transition); opacity: 0; transform: translateY(10px); }
+        .card.reveal { opacity: 1; transform: translateY(0); }
+        
+        /* Interactive Input Form Contexts */
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
-        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; }
-        .btn { padding: 12px 24px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; background: var(--primary-light); color: white; }
-        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; }
+        .form-group label { display: block; font-size: 12px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; color: var(--text-dark); background-color: #ffffff; transition: var(--transition); resize: vertical; }
+        .form-control:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1); }
+        
+        .btn { padding: 14px 28px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; background: var(--primary-light); color: white; transition: var(--transition); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; width: 100%; }
+        .btn:hover { background: var(--primary); box-shadow: 0 4px 12px rgba(120, 53, 15, 0.15); }
+        .btn:active { transform: scale(0.99); }
+        
+        /* History Ledger Table Components */
+        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); background: white; box-shadow: 0 4px 20px rgba(120, 53, 15, 0.02); opacity: 0; transform: translateY(10px); transition: var(--transition); }
+        .table-responsive.reveal { opacity: 1; transform: translateY(0); }
         .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
         .data-table th, .data-table td { padding: 16px 20px; border-bottom: 1px solid var(--border); }
-        .badge { display: inline-flex; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 30px; text-transform: uppercase; background: #fee2e2; color: #dc2626; }
+        .data-table th { background: #faf9f6; color: var(--primary); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* Dynamic Status Badges */
+        .badge { display: inline-flex; padding: 6px 14px; font-size: 11px; font-weight: 700; border-radius: 30px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .log-row { opacity: 0; transform: translateY(6px); transition: var(--transition); }
+        .log-row.visible { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body>
@@ -37,51 +73,167 @@
             <li><a href="cancellation.html" class="menu-item active">Cancellations</a></li>
             <li><a href="payment.html" class="menu-item">Payments</a></li>
             <li><a href="profile.html" class="menu-item">Profile</a></li>
-            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)">Logout</a></li>
+            <li class="logout-btn"><a href="#logout" class="menu-item logout-btn" id="logout-trigger">Logout</a></li>
         </ul>
     </nav>
+    
     <main class="main-content">
-        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px;">Manage Cancellations</h2>
-        <div class="card">
-            <h3 style="font-size:16px; margin-bottom:16px;">File Cancellation Claim</h3>
-            <div class="form-group"><label>Transaction Target ID</label><input type="number" id="cancel-id" class="form-control"></div>
-            <div class="form-group"><label>Statement Explanation Rationale</label><textarea id="cancel-reason" class="form-control" rows="3"></textarea></div>
-            <button class="btn" onclick="submitCancel()">Submit Cancellation</button>
+        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px; font-family: 'Georgia', serif; color: var(--primary);">Manage Cancellations</h2>
+        
+        <div class="card" id="cancellation-card">
+            <h3 style="font-size:16px; margin-bottom:20px; font-weight:800; color:var(--primary);">File Cancellation Claim</h3>
+            <div class="form-group">
+                <label for="cancel-id">Transaction Target ID</label>
+                <input type="number" id="cancel-id" class="form-control" placeholder="e.g. 1045">
+            </div>
+            <div class="form-group">
+                <label for="cancel-reason">Statement Explanation Rationale</label>
+                <textarea id="cancel-reason" class="form-control" rows="3" placeholder="Provide details regarding the cancellation request..."></textarea>
+            </div>
+            <button class="btn" id="btn-submit-cancel">Submit Cancellation Request</button>
         </div>
-        <div class="table-responsive">
+        
+        <div class="table-responsive" id="table-container">
             <table class="data-table">
-                <thead><tr><th>Target ID</th><th>Reason Stated</th><th>Review Status</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Target ID</th>
+                        <th>Reason Stated</th>
+                        <th>Review Status</th>
+                    </tr>
+                </thead>
                 <tbody id="cancellations-tbody"></tbody>
             </table>
         </div>
     </main>
 
     <script>
+        /**
+         * Orchestrates workspace setup hooks when DOM architecture compilation completes
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            revealComponents();
+            loadCancellations();
+
+            const submitBtn = document.getElementById('btn-submit-cancel');
+            if (submitBtn) submitBtn.addEventListener('click', submitCancel);
+
+            const logoutBtn = document.getElementById('logout-trigger');
+            if (logoutBtn) logoutBtn.addEventListener('click', processLogout);
+        });
+
+        /**
+         * Smoothly handles component intro animations upon interface mount
+         */
+        function revealComponents() {
+            const formCard = document.getElementById('cancellation-card');
+            const tableBox = document.getElementById('table-container');
+            
+            if (formCard) setTimeout(() => formCard.classList.add('reveal'), 50);
+            if (tableBox) setTimeout(() => tableBox.classList.add('reveal'), 150);
+        }
+
+        /**
+         * Queries order indexes to filter out and display current active cancellation files
+         */
         async function loadCancellations() {
             try {
                 const res = await fetch('/api/orders');
+                if (!res.ok) throw new Error(`HTTP data pipeline error: ${res.status}`);
+                
                 const data = await res.json();
                 const tbody = document.getElementById('cancellations-tbody');
+                if (!tbody) return;
+
                 tbody.innerHTML = '';
+                
+                // Matches items with an active cancellation profile attached
                 const items = data.filter(t => t.cancellation_status && t.cancellation_status !== 'None');
-                if(items.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:20px 0;">No logs found.</td></tr>`;
+                
+                if (!items || items.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:32px 0; color:var(--text-muted); font-style:italic;">No historical cancellation logs found.</td></tr>`;
                     return;
                 }
-                items.forEach(t => {
-                    tbody.innerHTML += `<tr><td><strong>#${t.id}</strong></td><td>${t.cancellation_reason}</td><td><span class="badge">${t.cancellation_status}</span></td></tr>`;
+                
+                const tableFragment = document.createDocumentFragment();
+                
+                items.forEach((t, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'log-row';
+                    
+                    const targetId = escapeHtml(String(t.id));
+                    const reason = escapeHtml(t.cancellation_reason || 'No rationale specified.');
+                    const rawStatus = t.cancellation_status || 'Pending';
+                    const cleanStatus = escapeHtml(rawStatus);
+                    
+                    // Assign specific styles to matches contextual process states
+                    let badgeStyles = 'background: #fffbeb; color: #b45309;'; // Amber for Pending/Reviewing
+                    if (rawStatus.toLowerCase() === 'approved' || rawStatus.toLowerCase() === 'cancelled') {
+                        badgeStyles = 'background: #f0fdf4; color: #16a34a;'; // Green for confirmed cancellations
+                    } else if (rawStatus.toLowerCase() === 'rejected' || rawStatus.toLowerCase() === 'declined') {
+                        badgeStyles = 'background: #fef2f2; color: #dc2626;'; // Red for rejected adjustments
+                    }
+
+                    tr.innerHTML = `
+                        <td><strong>#${targetId}</strong></td>
+                        <td style="color: var(--text-dark); max-width: 400px; line-height: 1.5;">${reason}</td>
+                        <td><span class="badge" style="${badgeStyles}">${cleanStatus}</span></td>
+                    `;
+                    
+                    tableFragment.appendChild(tr);
+                    
+                    // Staggered child initialization execution ticks
+                    setTimeout(() => tr.classList.add('visible'), idx * 40);
                 });
-            } catch(err) { console.error(err); }
+                
+                tbody.appendChild(tableFragment);
+            } catch(err) { 
+                console.error("Critical interrupt constructing cancellation history matrix:", err); 
+            }
         }
+
+        /**
+         * Dispatches structural inputs to processing gateways after parsing security layouts
+         */
         async function submitCancel() {
-            const id = document.getElementById('cancel-id').value;
-            const reason = document.getElementById('cancel-reason').value;
-            if(!id || !reason) return alert("Fill fields!");
+            const idInput = document.getElementById('cancel-id');
+            const reasonInput = document.getElementById('cancel-reason');
+            
+            if (!idInput || !reasonInput) return;
+
+            const id = idInput.value.trim();
+            const reason = reasonInput.value.trim();
+            
+            if (!id || !reason) {
+                alert("Please complete all parameters prior to submittal processing.");
+                return;
+            }
+            
             try {
-                const res = await fetch(`/api/orders/${id}/cancel`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason }) });
-                if (res.ok) { alert("Cancellation filed."); loadCancellations(); }
-            } catch(err) { console.error(err); }
+                const res = await fetch(`/api/orders/${id}/cancel`, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ reason: reason }) 
+                });
+                
+                if (res.ok) { 
+                    alert("✨ Cancellation request successfully submitted for audit validation!");
+                    idInput.value = '';
+                    reasonInput.value = '';
+                    loadCancellations(); 
+                } else {
+                    const errorPayload = await res.json();
+                    alert("Submission Fault: " + (errorPayload.error || "Server rejected request properties. Check Order ID validity."));
+                }
+            } catch(err) { 
+                console.error("Pipeline failure filing cancellation request context:", err); 
+                alert("Network transaction failed. Unable to access request channels.");
+            }
         }
+
+        /**
+         * Ends existing interface sessions securely
+         */
         async function processLogout(event) {
             event.preventDefault();
             if (!confirm("Are you sure you want to end your current session and sign out?")) return;
@@ -90,14 +242,27 @@
                 const check = await fetch('/api/logout');
                 if (check.ok) {
                     alert("Logged out successfully.");
-                    // Updated from local template location string to direct absolute root endpoint route context
                     window.location.href = '/login.html';
+                } else {
+                    alert("Logout lifecycle execution failure.");
                 }
             } catch (error) {
-                console.error("Logout runtime error network connection failure:", error);
+                console.error("Logout state channel conflict:", error);
+                window.location.href = '/login.html'; // Direct escape boundary tracking lock
             }
         }
-        window.addEventListener('DOMContentLoaded', loadCancellations);
+
+        /**
+         * Converts sensitive context string components into inert markup entities
+         */
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
     </script>
 </body>
 </html>
