@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users - Admin</title>
+    <link rel="stylesheet" href="admin-style.css">
+    <style>
+        /* Modern structural layout rules to fix sidebar overlaps and table clipping */
+        body {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: #f8fafc;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .sidebar {
+            width: 260px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            box-sizing: border-box;
+        }
+
+        .main-content {
+            margin-left: 260px; /* Aligns exactly with the fixed sidebar width */
+            flex: 1;
+            padding: 40px;
+            box-sizing: border-box;
+            width: calc(100% - 260px);
+            overflow-x: hidden;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        /* Role-specific custom badge styles matching your system identity */
+        .badge {
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+
+        .badge-admin { background: #fee2e2; color: #dc2626; }
+        .badge-staff { background: #fef3c7; color: #d97706; }
+        .badge-customer { background: #e0f2fe; color: #0284c7; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="brand-section">
+            <div class="brand-logo"></div>
+            <div class="brand-name">Clara's Best</div>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="admin.html">Dashboard</a></li>
+            <li class="active"><a href="users.html">Users</a></li>
+            <li><a href="products.html">Products</a></li>
+            <li><a href="orders.html">Orders</a></li>
+            <li><a href="reservations.html">Reservations</a></li>
+            <li><a href="inventory.html">Inventory</a></li>
+            <li><a href="payments.html">Payments</a></li>
+            <li><a href="reports.html">Reports</a></li>
+            <li><a href="settings.html">Settings</a></li>
+            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)">Logout</a></li>
+        </ul>
+    </nav>
+    
+    <main class="main-content">
+        <div class="header-container">
+            <div class="page-title">
+                <h1>User Management</h1>
+            </div>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body">
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 30px; color: #64748b;">
+                            Loading user accounts...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        // 1. Fetch user accounts from your Express backend on load
+        async function fetchUsers() {
+            try {
+                // Hits your custom user routing endpoint
+                const response = await fetch('/api/users');
+                if (!response.ok) {
+                    throw new Error("Server response failed");
+                }
+                
+                const users = await response.json();
+                const tableBody = document.getElementById('users-table-body');
+                
+                if (users.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px;">No registered users found.</td></tr>`;
+                    return;
+                }
+
+                // Render database lines cleanly inside your HTML structural design
+                tableBody.innerHTML = users.map(user => {
+                    // Match class styles based on database role strings
+                    let badgeClass = 'badge-customer';
+                    if (user.role === 'Admin') badgeClass = 'badge-admin';
+                    if (user.role === 'Staff') badgeClass = 'badge-staff';
+
+                    return `
+                        <tr>
+                            <td><strong>${user.id}</strong></td>
+                            <td>${user.name}</td>
+                            <td>${user.email}</td>
+                            <td>
+                                <span class="badge ${badgeClass}">
+                                    ${user.role}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="action-btn" onclick="editUserRole(${user.id}, '${user.role}')" 
+                                    style="background: var(--primary-color, #5c3d2e); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                                    Edit Role
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error("Error connecting to user API:", error);
+                document.getElementById('users-table-body').innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 30px; color: #dc2626; font-weight: bold;">
+                            Failed to read user registry. Please ensure server API endpoints are fully active.
+                        </td>
+                    </tr>`;
+            }
+        }
+
+        // 2. Functional Action: Modify user roles dynamically
+        async function editUserRole(userId, currentRole) {
+            const nextRole = currentRole === 'Customer' ? 'Staff' : currentRole === 'Staff' ? 'Admin' : 'Customer';
+            if (!confirm(`Do you want to cycle this user's role to ${nextRole}?`)) return;
+
+            try {
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: nextRole })
+                });
+
+                if (response.ok) {
+                    alert("User privilege level modified successfully.");
+                    fetchUsers(); // Live refresh tables data frame
+                } else {
+                    const err = await response.json();
+                    alert(`Error: ${err.error || 'Failed to update user'}`);
+                }
+            } catch (error) {
+                console.error("Network error modifying role:", error);
+            }
+        }
+
+        // 3. Clear sessions securely upon click execution
+        async function processLogout(event) {
+            event.preventDefault();
+            if (!confirm("Are you sure you want to log out?")) return;
+
+            try {
+                const check = await fetch('/api/logout');
+                if (check.ok) {
+                    alert("Logged out successfully.");
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error("Logout network issue:", error);
+            }
+        }
+
+        // Auto initialization loop trigger
+        window.onload = fetchUsers;
+    </script>
+</body>
+</html>

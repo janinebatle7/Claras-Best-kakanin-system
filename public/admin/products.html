@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Products - Admin</title>
+    <link rel="stylesheet" href="admin-style.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="brand-section"><div class="brand-logo"></div><div class="brand-name">Clara's Best</div></div>
+        <ul class="sidebar-menu">
+            <li><a href="admin.html">Dashboard</a></li>
+            <li><a href="users.html">Users</a></li>
+            <li class="active"><a href="products.html">Products</a></li>
+            <li><a href="orders.html">Orders</a></li>
+            <li><a href="reservations.html">Reservations</a></li>
+            <li><a href="inventory.html">Inventory</a></li>
+            <li><a href="payments.html">Payments</a></li>
+            <li><a href="reports.html">Reports</a></li>
+            <li><a href="settings.html">Settings</a></li>
+            <li class="logout-btn"><a href="#logout">Logout</a></li>
+        </ul>
+    </nav>
+    <main class="main-content">
+        <div class="header-container">
+            <div class="page-title"><h1>Product Management</h1></div>
+            <button class="action-btn">+ Add New Product</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>Image</th><th>Product Name</th><th>Category</th><th>Price</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>[Puto Pic]</td><td>Puto</td><td>Rice Cake</td><td>₱36.00</td><td><button class="action-btn">Edit</button></td></tr>
+                    <tr><td>[Biko Pic]</td><td>Biko</td><td>Rice Cake</td><td>₱20.00</td><td><button class="action-btn">Edit</button></td></tr>
+                    <tr><td>[Sapin Pic]</td><td>Sapin-Sapin</td><td>Pudding</td><td>₱26.00</td><td><button class="action-btn">Edit</button></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>

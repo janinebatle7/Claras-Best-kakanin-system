@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Settings - Admin</title>
+    <link rel="stylesheet" href="admin-style.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="brand-section"><div class="brand-logo"></div><div class="brand-name">Clara's Best</div></div>
+        <ul class="sidebar-menu">
+            <li><a href="admin.html">Dashboard</a></li>
+            <li><a href="users.html">Users</a></li>
+            <li><a href="products.html">Products</a></li>
+            <li><a href="orders.html">Orders</a></li>
+            <li><a href="reservations.html">Reservations</a></li>
+            <li><a href="inventory.html">Inventory</a></li>
+            <li><a href="payments.html">Payments</a></li>
+            <li><a href="reports.html">Reports</a></li>
+            <li class="active"><a href="settings.html">Settings</a></li>
+            <li class="logout-btn"><a href="#logout">Logout</a></li>
+        </ul>
+    </nav>
+    <main class="main-content">
+        <div class="header-container"><div class="page-title"><h1>System Settings</h1></div></div>
+        <div class="table-container" style="max-width: 600px;">
+            <form>
+                <div class="form-group">
+                    <label>Store Status</label>
+                    <select><option>Open</option><option>Closed</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Base Delivery Fee (₱)</label>
+                    <input type="number" value="3.00">
+                </div>
+                <button type="button" class="action-btn">Save Configurations</button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

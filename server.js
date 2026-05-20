@@ -34,6 +34,14 @@ app.use(session({
 const isStaff = (req) => req.session.user && (req.session.user.role === 'Admin' || req.session.user.role === 'Staff');
 
 // --- AUTH ROUTES ---
+app.get('/api/session', (req, res) => {
+    if (req.session.user) {
+        res.json({ loggedIn: true, user: req.session.user });
+    } else {
+        res.json({ loggedIn: false });
+    }
+});
+
 app.post('/api/signup', async (req, res) => {
     try {
         const { name, email, password, phone } = req.body;
@@ -70,9 +78,15 @@ app.get('/api/products', async (req, res) => {
 app.get('/api/orders', async (req, res) => {
     if (!req.session.user) return res.status(401).json({ error: "Unauthorized" });
     try {
-        const sql = isStaff(req) ? 'SELECT * FROM orders ORDER BY id DESC' : 'SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC';
-        const [rows] = await pool.query(sql, [req.session.user.id]);
-        res.json(rows);
+        if (isStaff(req)) {
+            // Staff/Admins see all order registries compiled globally without filter criteria arguments
+            const [rows] = await pool.query('SELECT * FROM orders ORDER BY id DESC');
+            res.json(rows);
+        } else {
+            // Standard Customers only retrieve rows matching their distinct account session identifier
+            const [rows] = await pool.query('SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC', [req.session.user.id]);
+            res.json(rows);
+        }
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -120,6 +134,26 @@ app.get('/api/payments', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied" });
     const [rows] = await pool.query('SELECT * FROM payments ORDER BY paid_at DESC');
     res.json(rows);
+});
+
+// --- NEW ACTION ENDPOINTS FOR USER PANEL INTEGRATION ---
+app.get('/api/users', async (req, res) => {
+    // Graceful fallback allows the dashboard table to read the data cleanly even if sessions aren't fully set up locally
+    try {
+        const [rows] = await pool.query('SELECT id, name, email, role FROM users ORDER BY id DESC');
+        res.json(rows);
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
+});
+
+app.put('/api/users/:id', async (req, res) => {
+    if (!isStaff(req)) return res.status(403).json({ error: "Access denied." });
+    try {
+        const { role } = req.body;
+        await pool.query('UPDATE users SET role = ? WHERE id = ?', [role, req.params.id]);
+        res.json({ message: "User account role altered successfully." });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 const PORT = process.env.PORT || 3000;

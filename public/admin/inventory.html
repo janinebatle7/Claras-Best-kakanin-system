@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Inventory - Admin</title>
+    <link rel="stylesheet" href="admin-style.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="brand-section"><div class="brand-logo"></div><div class="brand-name">Clara's Best</div></div>
+        <ul class="sidebar-menu">
+            <li><a href="admin.html">Dashboard</a></li>
+            <li><a href="users.html">Users</a></li>
+            <li><a href="products.html">Products</a></li>
+            <li><a href="orders.html">Orders</a></li>
+            <li><a href="reservations.html">Reservations</a></li>
+            <li class="active"><a href="inventory.html">Inventory</a></li>
+            <li><a href="payments.html">Payments</a></li>
+            <li><a href="reports.html">Reports</a></li>
+            <li><a href="settings.html">Settings</a></li>
+            <li class="logout-btn"><a href="#logout">Logout</a></li>
+        </ul>
+    </nav>
+    <main class="main-content">
+        <div class="header-container"><div class="page-title"><h1>Inventory Control</h1></div></div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>Item Name</th><th>Stock Level</th><th>Unit</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Glutinous Rice</td><td>50</td><td>kg</td><td><span class="badge success">In Stock</span></td></tr>
+                    <tr><td>Sugar</td><td>5</td><td>kg</td><td><span class="badge pending">Low Stock</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Payments - Admin</title>
+    <link rel="stylesheet" href="admin-style.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="brand-section"><div class="brand-logo"></div><div class="brand-name">Clara's Best</div></div>
+        <ul class="sidebar-menu">
+            <li><a href="admin.html">Dashboard</a></li>
+            <li><a href="users.html">Users</a></li>
+            <li><a href="products.html">Products</a></li>
+            <li><a href="orders.html">Orders</a></li>
+            <li><a href="reservations.html">Reservations</a></li>
+            <li><a href="inventory.html">Inventory</a></li>
+            <li class="active"><a href="payments.html">Payments</a></li>
+            <li><a href="reports.html">Reports</a></li>
+            <li><a href="settings.html">Settings</a></li>
+            <li class="logout-btn"><a href="#logout">Logout</a></li>
+        </ul>
+    </nav>
+    <main class="main-content">
+        <div class="header-container"><div class="page-title"><h1>Payment Verification</h1></div></div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>Transaction ID</th><th>Method</th><th>Reference No.</th><th>Amount</th><th>Verification</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>#PAY-7711</td><td>GCash</td><td>Ref: 901238412</td><td>₱325.00</td><td><button class="action-btn">View Proof</button></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>
