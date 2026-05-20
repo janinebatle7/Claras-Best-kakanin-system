@@ -100,7 +100,7 @@ app.post('/api/products', async (req, res) => {
     }
 });
 
-// Seamlessly connects with inventory.html's quickUpdateStock controller function
+// Seamlessly connects with inventory.html's quickUpdateStock controller function and products.html modifications
 app.put('/api/products/:id', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied. Admin or Staff role required." });
     try {
@@ -134,6 +134,7 @@ app.get('/api/orders', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// --- POST ROUTE: Records ledger entries directly into payments table ---
 app.post('/api/orders', async (req, res) => {
     if (!req.session.user && !(req.hostname === 'localhost' || req.hostname === '127.0.0.1')) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -141,7 +142,7 @@ app.post('/api/orders', async (req, res) => {
     const conn = await pool.getConnection();
     try {
         await conn.beginTransaction();
-        const { items, type, payment_method, customer_name } = req.body;
+        const { items, type, payment_method, customer_name, reference_number, proof_image } = req.body;
         const currentUserId = req.session.user ? req.session.user.id : 1;
         const currentUserName = req.session.user ? req.session.user.name : "Admin Developer";
         
@@ -154,16 +155,37 @@ app.post('/api/orders', async (req, res) => {
             await conn.query('UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?', [item.quantity, item.product_id]);
         }
         
-        const [order] = await conn.query('INSERT INTO orders (user_id, customer_name, type, total_price, payment_method) VALUES (?, ?, ?, ?, ?)',
-            [currentUserId, customer_name || currentUserName, type, total, payment_method]);
+        // 1. Core structural registry push to orders relational schema tracking
+        const [orderResult] = await conn.query(
+            'INSERT INTO orders (user_id, customer_name, type, total_price, payment_method) VALUES (?, ?, ?, ?, ?)',
+            [currentUserId, customer_name || currentUserName, type, total, payment_method]
+        );
+        
+        const generatedOrderId = orderResult.insertId;
+
+        // 2. Automated fallback data generation logic for database schema
+        await conn.query(
+            'INSERT INTO payments (order_id, payment_method, reference_number, amount, proof_image) VALUES (?, ?, ?, ?, ?)',
+            [
+                generatedOrderId, 
+                payment_method || 'GCash', 
+                reference_number || null, 
+                total, 
+                proof_image || null
+            ]
+        );
         
         await conn.commit();
-        res.status(201).json({ message: "Order processed", orderId: order.insertId });
-    } catch (err) { await conn.rollback(); res.status(500).json({ error: err.message }); }
-    finally { conn.release(); }
+        res.status(201).json({ message: "Order processed and logged to payment database rows smoothly.", orderId: generatedOrderId });
+    } catch (err) { 
+        await conn.rollback(); 
+        res.status(500).json({ error: err.message }); 
+    } finally { 
+        conn.release(); 
+    }
 });
 
-// --- NEW ROUTES: RESERVATIONS SYSTEM MANAGEMENT ---
+// --- RESERVATIONS SYSTEM MANAGEMENT ---
 // Seamlessly populates rows inside reservations.html data tables
 app.get('/api/reservations', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied. Admin or Staff role required." });
@@ -193,24 +215,36 @@ app.get('/api/admin/sales', async (req, res) => {
     try {
         const [[sales]] = await pool.query('SELECT SUM(total_price) as total FROM orders WHERE payment_status = "Paid"');
         const [[pending]] = await pool.query('SELECT COUNT(*) as count FROM orders WHERE order_status != "Completed"');
-        res.json({ totalSales: sales.total || 0, pendingOrders: pending.count });
+        
+        // Fallback protection layer to prevent null output types on an empty database sum operation
+        const calculatedSalesTotal = sales ? (sales.total || 0) : 0;
+        const calculatedPendingCount = pending ? (pending.count || 0) : 0;
+
+        res.json({ totalSales: calculatedSalesTotal, pendingOrders: calculatedPendingCount });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/orders/:id', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied" });
-    await pool.query('UPDATE orders SET order_status = ?, payment_status = ? WHERE id = ?', 
-    [req.body.order_status, req.body.payment_status, req.params.id]);
-    res.json({ message: "Updated" });
+    try {
+        await pool.query('UPDATE orders SET order_status = ?, payment_status = ? WHERE id = ?', 
+        [req.body.order_status, req.body.payment_status, req.params.id]);
+        res.json({ message: "Updated" });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// Pulls transactions directly from your clean, operational schema columns
 app.get('/api/payments', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied" });
-    const [rows] = await pool.query('SELECT * FROM payments ORDER BY paid_at DESC');
-    res.json(rows);
+    try {
+        const [rows] = await pool.query('SELECT * FROM payments ORDER BY id DESC');
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-// --- NEW ACTION ENDPOINTS FOR USER PANEL INTEGRATION ---
+// --- ACTION ENDPOINTS FOR USER PANEL INTEGRATION ---
 app.get('/api/users', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied. Admin or Staff role required." });
     try {

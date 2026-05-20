@@ -46,7 +46,7 @@
             </div>
             <div class="card">
                 <h3>Total Reservations</h3>
-                <div class="value">8 Today</div>
+                <div class="value" id="total-reservations-value">0 Active</div>
             </div>
         </div>
 
@@ -99,7 +99,25 @@
             }
         }
 
-        // 2. Fetch and render real database rows inside the pending orders grid table view
+        // 2. Fetch and calculate real active reservations count
+        async function loadReservationsAnalytics() {
+            try {
+                const response = await fetch('/api/reservations');
+                if (!response.ok) throw new Error("Failed to load reservation registry data.");
+                
+                const reservations = await response.json();
+                
+                // Count reservations that are not explicitly cancelled
+                const activeReservations = reservations.filter(res => res.status !== 'Cancelled').length;
+                document.getElementById('total-reservations-value').innerText = `${activeReservations} Active`;
+                
+            } catch (error) {
+                console.error("Dashboard reservations count load failure:", error);
+                document.getElementById('total-reservations-value').innerText = "Error Loading";
+            }
+        }
+
+        // 3. Fetch and render real database rows inside the pending orders grid table view
         async function loadPendingOrdersTable() {
             try {
                 const response = await fetch('/api/orders');
@@ -149,7 +167,7 @@
             }
         }
 
-        // 3. Destroys browser context sessions completely upon click execution
+        // 4. Destroys browser context sessions completely upon click execution
         async function processLogout(event) {
             event.preventDefault();
             if (!confirm("Are you sure you want to end your current session and sign out?")) return;
@@ -168,6 +186,7 @@
         // Self initialization sequences loaded cleanly on launch execution hooks
         window.onload = function() {
             loadDashboardAnalytics();
+            loadReservationsAnalytics();
             loadPendingOrdersTable();
         };
     </script>

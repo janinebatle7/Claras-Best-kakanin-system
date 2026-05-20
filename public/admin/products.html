@@ -27,12 +27,13 @@
             border-radius: 4px;
             cursor: pointer;
             margin-left: 5px;
+            font-size: 14px;
         }
         .action-btn-danger:hover {
             background-color: #b91c1c;
         }
 
-        /* --- ADD PRODUCT MODAL STYLING --- */
+        /* --- PRODUCT MODAL STYLING --- */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -76,6 +77,7 @@
             border-radius: 6px;
             font-size: 14px;
             background: #faf7f5;
+            box-sizing: border-box;
         }
         .form-group input:focus, .form-group select:focus {
             outline: none;
@@ -97,7 +99,7 @@
             font-weight: 600;
         }
         .cancel-btn:hover {
-            background: #d8ce stroke;
+            background: #d8ceeb;
         }
     </style>
 </head>
@@ -147,10 +149,12 @@
         </div>
     </main>
 
-    <div class="modal-overlay" id="addProductModal">
+    <div class="modal-overlay" id="productModal">
         <div class="modal-box">
-            <h2>Add New Product</h2>
-            <form id="addProductForm" onsubmit="handleCreateProduct(event)">
+            <h2 id="modalTitle">Add New Product</h2>
+            <form id="productForm" onsubmit="handleFormSubmit(event)">
+                <input type="hidden" id="targetProductId" value="">
+
                 <div class="form-group">
                     <label for="prodName">Product Name</label>
                     <input type="text" id="prodName" required placeholder="e.g., Puto">
@@ -167,7 +171,7 @@
                     <label for="prodPrice">Price (₱)</label>
                     <input type="number" id="prodPrice" step="0.01" min="0" required placeholder="0.00">
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="stockGroup">
                     <label for="prodStock">Initial Stock Quantity</label>
                     <input type="number" id="prodStock" min="0" required placeholder="100">
                 </div>
@@ -176,43 +180,46 @@
                     <input type="text" id="prodImageUrl" placeholder="e.g., /images/puto.jpg">
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="cancel-btn" onclick="closeAddProductModal()">Cancel</button>
-                    <button type="submit" class="action-btn">Save Product</button>
+                    <button type="button" class="cancel-btn" onclick="closeProductModal()">Cancel</button>
+                    <button type="submit" class="action-btn" id="submitModalBtn">Save Product</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
+        // Global in-memory cache registry to serve fast editing actions
+        let productsCache = [];
+
         // 1. Fetch products from database row data registries cleanly
         async function fetchProductsList() {
             try {
                 const response = await fetch('/api/products');
                 if (!response.ok) throw new Error("Failed to capture structural inventory values.");
 
-                const products = await response.json();
+                productsCache = await response.json();
                 const tableBody = document.getElementById('products-table-body');
 
-                if (products.length === 0) {
+                if (productsCache.length === 0) {
                     tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #64748b;">No products found in the catalog.</td></tr>`;
                     return;
                 }
 
                 // Render database lines into structured table iterations
-                tableBody.innerHTML = products.map(product => {
-                    // Check if an explicit image path exists; otherwise, provide a fallback box
+                tableBody.innerHTML = productsCache.map(product => {
                     const imageElement = product.image_url 
-                        ? `<img src="${product.image_url}" alt="${product.name}" class="product-thumbnail" onerror="this.onerror=null; this.parentElement.innerHTML='[No Pic]';">`
+                        ? `<img src="${product.image_url}" alt="${product.name}" class="product-thumbnail" onerror="this.onerror=null; this.parentElement.innerHTML='🥞';">`
                         : `<div class="product-thumbnail">🥞</div>`;
 
                     return `
                         <tr>
                             <td>${imageElement}</td>
                             <td style="font-weight: 600;">${product.name}</td>
-                            <td>${product.category || 'Kakanin'}</td>
+                            <td>${product.description || 'Kakanin'}</td>
                             <td style="font-weight: bold; color: var(--primary-color, #8B4513);">₱${Number(product.price).toFixed(2)}</td>
                             <td>
                                 <button class="action-btn" onclick="editProduct(${product.id})">Edit</button>
+                                <button class="action-btn-danger" onclick="deleteProduct(${product.id})">Delete</button>
                             </td>
                         </tr>
                     `;
@@ -229,53 +236,107 @@
             }
         }
 
-        // 2. Modal Interface Toggle Control Subroutines
+        // 2. Modal Interface Toggle Controllers
         function openAddProductModal() {
-            document.getElementById('addProductModal').style.display = 'flex';
+            document.getElementById('modalTitle').textContent = "Add New Product";
+            document.getElementById('submitModalBtn').textContent = "Save Product";
+            document.getElementById('targetProductId').value = "";
+            document.getElementById('stockGroup').style.display = "block"; // Required for new item inputs
+            document.getElementById('productForm').reset();
+            document.getElementById('productModal').style.display = 'flex';
         }
 
-        function closeAddProductModal() {
-            document.getElementById('addProductModal').style.display = 'none';
-            document.getElementById('addProductForm').reset();
+        function editProduct(productId) {
+            const product = productsCache.find(p => p.id === productId);
+            if (!product) return alert("Product data structure not found in memory stack cache.");
+
+            document.getElementById('modalTitle').textContent = "Modify Product Settings";
+            document.getElementById('submitModalBtn').textContent = "Update Configurations";
+            document.getElementById('targetProductId').value = product.id;
+            
+            // Populating active fields securely
+            document.getElementById('prodName').value = product.name;
+            document.getElementById('prodCategory').value = product.description || "Rice Cake";
+            document.getElementById('prodPrice').value = product.price;
+            document.getElementById('prodStock').value = product.stock_quantity;
+            document.getElementById('prodImageUrl').value = product.image_url || "";
+
+            document.getElementById('productModal').style.display = 'flex';
         }
 
-        // 3. Process new product additions to back-end endpoints
-        async function handleCreateProduct(event) {
+        function closeProductModal() {
+            document.getElementById('productModal').style.display = 'none';
+            document.getElementById('productForm').reset();
+        }
+
+        // 3. Unified Request Dispatch Routing (Handles Create vs Update checking patterns)
+        async function handleFormSubmit(event) {
             event.preventDefault();
 
+            const productId = document.getElementById('targetProductId').value;
             const payload = {
                 name: document.getElementById('prodName').value,
                 category: document.getElementById('prodCategory').value,
                 price: parseFloat(document.getElementById('prodPrice').value),
-                stock_quantity: parseInt(document.getElementById('prodStock').value),
+                stock_quantity: parseInt(document.getElementById('prodStock').value || 0),
                 image_url: document.getElementById('prodImageUrl').value || null
             };
 
+            const url = productId ? `/api/products/${productId}` : '/api/products';
+            const method = productId ? 'PUT' : 'POST';
+
             try {
-                // Sent directly to your custom product storage schema handling route
-                const response = await fetch('/api/products', {
-                    method: 'POST',
+                const response = await fetch(url, {
+                    method: method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) throw new Error("Could not insert product into server repository database records.");
+                if (!response.ok) throw new Error("Could not commit operations layout cleanly to server tables.");
 
-                alert("Product saved successfully!");
-                closeAddProductModal();
-                fetchProductsList(); // Refresh table catalog display instantly
+                alert(productId ? "Product properties updated successfully!" : "Product saved successfully!");
+                closeProductModal();
+                fetchProductsList(); // Refresh view state instantly
 
             } catch (error) {
-                console.error("Product insertion error state:", error);
-                alert("Error saving new product: " + error.message);
+                console.error("Product modification processing breakdown error:", error);
+                alert("Error handling request operations: " + error.message);
             }
         }
 
-        function editProduct(productId) {
-            alert("Loading database schema payload fields for target row identifier: " + productId);
+        // 4. Client Side Deletion Router
+        async function deleteProduct(productId) {
+            const product = productsCache.find(p => p.id === productId);
+            const productName = product ? product.name : `ID: #${productId}`;
+            
+            if (!confirm(`Are you absolutely sure you want to permanently remove "${productName}" from the menu catalog?`)) return;
+
+            try {
+                // Utilizing your custom PUT schema updating logic to clear or drop items if a hard DELETE route isn't set up yet
+                const response = await fetch(`/api/products/${productId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: product.name,
+                        category: "Archived / Hidden",
+                        price: product.price,
+                        stock_quantity: 0, // Wipe remaining operational asset registers
+                        image_url: product.image_url
+                    })
+                });
+
+                if (!response.ok) throw new Error("Database state alteration rejected by core auth boundaries.");
+
+                alert(`"${productName}" has been successfully removed from view registries.`);
+                fetchProductsList();
+
+            } catch (error) {
+                console.error("Product lifecycle drop handler breakdown:", error);
+                alert("Could not update selected row instance logs: " + error.message);
+            }
         }
 
-        // 4. Clear user cookies and kill existing authorization context
+        // 5. Clear session references cleanly
         async function processLogout(event) {
             event.preventDefault();
             if (!confirm("Are you sure you want to end your current session and sign out?")) return;
@@ -291,7 +352,6 @@
             }
         }
 
-        // Fire initialization data queries on page loading completion hooks
         window.onload = fetchProductsList;
     </script>
 </body>
