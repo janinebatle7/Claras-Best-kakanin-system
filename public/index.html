@@ -1,789 +1,800 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>CLARA'S BEST: Kakanin Delicacies</title>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
-
-        /* Modern Premium Tropical & Glassmorphism Design System */
-
         :root {
-
-            --primary: #5c2c06;        /* Deep Roast Espresso Brown */
-
-            --primary-light: #8b4513;  /* Warm Saddle Brown */
-
-            --accent: #e67e22;         /* Toasted Sweet Rice Caramel */
-
-            --accent-hover: #d35400;   /* Deep Caramel */
-
-            --text-main: #231204;      /* High contrast dark espresso */
-
-            --text-muted: #594636;     /* Muted earth tone */
-
+            --primary: #4A1521;        /* Deep Burgundy Maroon from image */
+            --primary-dark: #330B14;   /* Darker shade for accents */
+            --accent-gold: #DDAA53;    /* Soft Muted Gold Text */
+            --btn-gold: #F2C165;       /* Bright Gold for primary buttons */
+            --cream-bg: #FCF7EE;       /* Elegant Off-white Cream Background */
+            --text-dark: #2B1810;      /* Soft High-contrast Brown Body Text */
+            --text-muted: #6E5E57;     /* Light Brown Muted Body Text */
+            --white: #FFFFFF;
             
-
-            /* Glassmorphism values */
-
-            --glass-bg: rgba(255, 255, 255, 0.85);
-
-            --glass-border: rgba(255, 255, 255, 0.4);
-
-            --glass-header: rgba(24, 13, 5, 0.88);
-
-            
-
-            --radius-md: 12px;
-
-            --radius-lg: 20px;
-
-            --card-shadow: 0 8px 32px 0 rgba(44, 23, 6, 0.08);
-
-            --transition-smooth: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 30px;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-sm: 0 4px 15px rgba(74, 21, 33, 0.04);
+            --shadow-md: 0 10px 30px rgba(74, 21, 33, 0.08);
         }
-
-
 
         * { 
-
             box-sizing: border-box; 
-
             margin: 0;
-
             padding: 0;
-
         }
-
-
 
         body { 
-
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-
-            color: var(--text-main); 
-
-            line-height: 1.5;
-
-            min-height: 100vh;
-
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            color: var(--text-dark); 
+            background-color: var(--primary); /* Outer container wrapper background */
+            line-height: 1.6;
             -webkit-font-smoothing: antialiased;
-
-            
-
-            /* High-quality culinary banner backdrop */
-
-            background-image: linear-gradient(rgba(44, 23, 6, 0.4), rgba(44, 23, 6, 0.25)), 
-
-                              url('https://images.unsplash.com/photo-1621263764928-df1444c5e859?q=80&w=1920&auto=format&fit=crop');
-
-            background-size: cover;
-
-            background-position: center;
-
-            background-repeat: no-repeat;
-
-            background-attachment: fixed;
-
+            padding: 0 20px;
         }
 
-
-
-        /* Core Layout Container with Frosting Overlay Backdrop */
-
+        /* Core Layout Container matching the white curved frame structure */
         .main-wrapper {
-
-            max-width: 1140px;
-
-            margin: 40px auto;
-
-            padding: 40px;
-
-            background: var(--glass-bg);
-
-            backdrop-filter: blur(16px);
-
-            -webkit-backdrop-filter: blur(16px);
-
-            border: 1px solid var(--glass-border);
-
-            border-radius: var(--radius-lg);
-
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
-
+            max-width: 1400px;
+            margin: 0 auto 40px auto;
+            background: var(--cream-bg);
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
         }
 
-
-
-        /* Responsive structural scaling layout wrapper rules */
-
-        @media (max-width: 768px) {
-
-            .main-wrapper {
-
-                margin: 0;
-
-                border-radius: 0;
-
-                padding: 20px;
-
-            }
-
-        }
-
-
-
-        /* Brand Luxury Header Section */
-
+        /* --- HERO HEADER DESIGN AREA --- */
         header { 
-
-            background: var(--glass-header);
-
-            backdrop-filter: blur(8px);
-
-            -webkit-backdrop-filter: blur(8px);
-
-            color: white; 
-
-            padding: 45px 30px; 
-
-            text-align: center; 
-
-            border-radius: var(--radius-lg); 
-
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-
-            margin-bottom: 40px;
-
-            border: 1px solid rgba(255, 255, 255, 0.08);
-
-        }
-
-
-
-        header h1 {
-
-            font-size: 2.5rem;
-
-            font-weight: 800;
-
-            letter-spacing: -0.5px;
-
-            margin-bottom: 14px;
-
-            text-transform: uppercase;
-
-            color: #ffffff;
-
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-
-        }
-
-
-
-        .info-container {
-
-            display: flex;
-
-            flex-wrap: wrap;
-
-            justify-content: center;
-
-            gap: 15px 30px;
-
-            margin-top: 15px;
-
-            font-size: 0.95rem;
-
-        }
-
-
-
-        .info { 
-
-            color: #fbecc5; 
-
-            font-weight: 400;
-
-            letter-spacing: 0.3px;
-
-        }
-
-        
-
-        /* Interactive Nav Link State Status Window */
-
-        .nav-status { 
-
-            margin-top: 25px; 
-
-            text-align: center; 
-
-            border-top: 1px solid rgba(255, 255, 255, 0.12);
-
-            padding-top: 20px;
-
-            font-size: 0.95rem;
-
-        }
-
-
-
-        .nav-status a { 
-
-            color: var(--accent); 
-
-            font-weight: 600; 
-
-            text-decoration: none; 
-
-            margin-left: 20px; 
-
-            padding: 8px 16px;
-
-            border-radius: var(--radius-md);
-
-            transition: all var(--transition-smooth);
-
-            display: inline-block;
-
-        }
-
-
-
-        .nav-status a:hover {
-
-            background: rgba(255, 255, 255, 0.1);
-
-            color: #ffffff;
-
-        }
-
-
-
-        .section-title {
-
-            font-size: 1.8rem;
-
-            font-weight: 800;
-
-            margin-bottom: 30px;
-
-            color: var(--primary);
-
+            background-color: var(--primary);
+            color: var(--white); 
+            padding: 30px 60px 50px 60px; 
             position: relative;
+        }
 
+        /* Navbar Layout */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 60px;
+        }
+
+        .brand-block {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo-placeholder {
+            width: 45px;
+            height: 45px;
+            background-color: var(--accent-gold);
+            border-radius: 50px;
             display: inline-block;
-
-            padding-bottom: 8px;
-
         }
 
+        .brand-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
 
+        .brand-title span {
+            display: block;
+            font-size: 0.9rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
 
-        .section-title::after {
+        /* Navigation links menu */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
 
-            content: '';
+        .nav-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color var(--transition-smooth);
+        }
 
-            position: absolute;
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--btn-gold);
+            border-bottom: 2px solid var(--btn-gold);
+            padding-bottom: 4px;
+        }
 
-            bottom: 0;
+        /* Action Authentication Links inside the Header menu */
+        .nav-auth-buttons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-            left: 0;
+        .btn-outline-auth {
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: transparent;
+            color: var(--white);
+            padding: 10px 24px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: auto;
+            box-shadow: none;
+        }
 
+        .btn-outline-auth:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--white);
+            transform: none;
+        }
+
+        .btn-solid-auth {
+            background-color: var(--btn-gold);
+            color: var(--primary-dark);
+            padding: 10px 24px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: auto;
+            box-shadow: none;
+        }
+
+        .btn-solid-auth:hover {
+            background-color: #f7d188;
+            transform: none;
+        }
+
+        /* Hero presentation section layout split split rules */
+        .hero-split-container {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .hero-text-side {
+            padding-right: 20px;
+        }
+
+        .hero-badge {
+            background-color: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #F7EAD3;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .hero-text-side h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            color: var(--white);
+        }
+
+        .hero-text-side h2 span {
+            color: var(--btn-gold);
+            font-style: italic;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .hero-tagline {
+            font-size: 1.1rem;
+            color: #E2D3CE;
+            margin-bottom: 36px;
+            max-width: 500px;
+        }
+
+        .hero-actions-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 45px;
+        }
+
+        .btn-hero-order {
+            background-color: var(--primary-dark);
+            color: var(--white);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px 32px;
+            font-weight: 700;
+            border-radius: var(--radius-sm);
+            width: auto;
+        }
+
+        .btn-hero-order:hover {
+            background-color: #24070E;
+        }
+
+        .btn-hero-reserve {
+            background-color: transparent;
+            color: var(--btn-gold);
+            border: 1px solid var(--btn-gold);
+            padding: 14px 32px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            width: auto;
+            box-shadow: none;
+        }
+
+        .btn-hero-reserve:hover {
+            background-color: rgba(242, 193, 101, 0.1);
+        }
+
+        /* Business Contact Parameters Meta Panel Overlay */
+        .hero-contact-footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 25px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #F7EAD3;
+        }
+
+        /* Large circular composite image assembly block mirroring image layout templates */
+        .hero-image-side {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .bilao-display-ring {
+            width: 100%;
+            max-width: 490px;
+            height: auto;
+            border-radius: 500px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            border: 8px solid rgba(255,255,255,0.05);
+        }
+
+        /* --- FEATURES/VALUE STATS BLOCK --- */
+        .features-ribbon {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: var(--radius-md);
+            margin: -30px 60px 60px 60px;
+            position: relative;
+            z-index: 5;
+            box-shadow: var(--shadow-md);
+            gap: 20px;
+        }
+
+        .feature-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 15px;
+            border-right: 1px solid #EFEAE2;
+        }
+
+        .feature-card:last-child {
+            border-right: none;
+        }
+
+        .feature-icon-box {
             width: 50px;
+            height: 50px;
+            background-color: #F5EDE0;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        
+        .feature-icon-box.dark { background-color: var(--primary); color: var(--white); }
+        .feature-icon-box.gold { background-color: #DDAA53; color: var(--white); }
+        .feature-icon-box.accent { background-color: #8A4F3E; color: var(--white); }
+        .feature-icon-box.delivery { background-color: #C29353; color: var(--white); }
 
-            height: 4px;
-
-            background-color: var(--accent);
-
-            border-radius: 2px;
-
+        .feature-text h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 2px;
         }
 
+        .feature-text p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
 
+        /* --- CONTENT PRODUCT SHOWCASE GRID DESIGN AREA --- */
+        .catalog-section {
+            padding: 0 60px 80px 60px;
+        }
 
-        /* Modern Elastic Grid System layout rules */
+        .section-header-centered {
+            text-align: center;
+            margin-bottom: 45px;
+            position: relative;
+        }
+
+        .section-header-centered h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.3rem;
+            color: var(--primary);
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        /* Decorative line dividers matching the mockup image system styles */
+        .section-header-centered::after {
+            content: "✦";
+            display: block;
+            color: var(--accent-gold);
+            font-size: 1.2rem;
+            margin-top: 4px;
+        }
 
         .grid { 
-
             display: grid; 
-
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-
             gap: 30px; 
-
         }
 
-
-
-        /* Crisp Micro-Interactive White Product Panels */
-
+        /* Product Cards Restyled exactly like the image asset thumbnails */
         .card { 
-
-            background: rgba(255, 255, 255, 0.9); 
-
-            border: 1px solid rgba(92, 44, 6, 0.12); 
-
-            padding: 32px 24px; 
-
-            border-radius: var(--radius-lg); 
-
-            text-align: center; 
-
-            box-shadow: var(--card-shadow); 
-
+            background: var(--white); 
+            border: 1px solid #EFEAE2; 
+            padding: 16px; 
+            border-radius: var(--radius-md); 
+            text-align: left; 
+            box-shadow: var(--shadow-sm); 
             display: flex;
-
             flex-direction: column;
-
             justify-content: space-between;
-
-            align-items: center;
-
-            transition: transform var(--transition-smooth), box-shadow var(--transition-smooth), border-color var(--transition-smooth);
-
+            transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
+            position: relative;
         }
-
-
 
         .card:hover {
-
-            transform: translateY(-6px);
-
-            border-color: var(--accent);
-
-            box-shadow: 0 15px 35px rgba(44, 23, 6, 0.12);
-
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
         }
 
+        /* Embedded thumbnail images within dynamically generated cards */
+        .card-image-wrapper {
+            width: 100%;
+            height: 180px;
+            background-color: #F5F0E6;
+            border-radius: calc(var(--radius-md) - 4px);
+            margin-bottom: 16px;
+            overflow: hidden;
+            position: relative;
+        }
 
+        .card-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
         .card h3 {
-
-            font-size: 1.35rem;
-
+            font-size: 1.15rem;
             font-weight: 700;
-
-            color: var(--primary);
-
-            margin-bottom: 12px;
-
+            color: var(--text-dark);
+            margin-bottom: 4px;
         }
-
-
 
         .card .description {
-
-            font-size: 0.95rem;
-
+            font-size: 0.88rem;
             color: var(--text-muted);
-
-            margin-bottom: 22px;
-
-            min-height: 72px; /* Standardized fluid structural alignment rules */
-
+            margin-bottom: 16px;
+            line-height: 1.4;
             display: -webkit-box;
-
-            -webkit-line-clamp: 3;
-
+            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
-
             overflow: hidden;
-
+            min-height: 40px;
         }
 
+        .card-footer-pricing {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 10px;
+        }
 
+        .price-and-stock {
+            display: flex;
+            flex-direction: column;
+        }
 
         .card .price-tag {
-
-            font-size: 1.5rem;
-
+            font-size: 1.25rem;
             font-weight: 800;
-
-            color: var(--primary-light);
-
-            margin-bottom: 6px;
-
+            color: var(--text-dark);
         }
-
-
 
         .card .stock-tag {
-
-            font-size: 0.85rem;
-
-            font-weight: 700;
-
-            color: #7c5e43;
-
-            background-color: #f5ece4;
-
-            padding: 5px 14px;
-
-            border-radius: 30px;
-
-            margin-bottom: 24px;
-
-            display: inline-block;
-
-        }
-
-
-
-        /* Tactile Flat Order Action Controls */
-
-        button { 
-
-            background: var(--accent); 
-
-            color: white; 
-
-            border: none; 
-
-            padding: 14px 24px; 
-
-            font-size: 0.95rem;
-
-            font-weight: 700;
-
-            width: 100%;
-
-            cursor: pointer; 
-
-            border-radius: var(--radius-md); 
-
-            box-shadow: 0 4px 12px rgba(230, 126, 34, 0.25);
-
-            transition: all var(--transition-smooth);
-
-            letter-spacing: 0.3px;
-
-        }
-
-
-
-        button:hover { 
-
-            background: var(--accent-hover); 
-
-            box-shadow: 0 6px 20px rgba(211, 84, 0, 0.35);
-
-            transform: scale(1.01);
-
-        }
-
-
-
-        button:active {
-
-            transform: scale(0.99);
-
-        }
-
-
-
-        /* Empty/Error State Card Styles */
-
-        .status-message {
-
-            grid-column: 1 / -1;
-
-            padding: 50px;
-
-            background: rgba(255, 255, 255, 0.8);
-
-            border-radius: var(--radius-lg);
-
-            border: 2px dashed rgba(92, 44, 6, 0.15);
-
-            text-align: center;
-
+            font-size: 0.75rem;
+            font-weight: 600;
             color: var(--text-muted);
-
-            font-size: 1.1rem;
-
-            font-weight: 500;
-
+            margin-top: 2px;
         }
 
+        /* Small circular action icon addition interface matching mockup */
+        .btn-card-action { 
+            background: var(--primary); 
+            color: var(--white); 
+            border: none; 
+            padding: 0;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer; 
+            border-radius: var(--radius-sm); 
+            box-shadow: none;
+            transition: background-color var(--transition-smooth);
+        }
+
+        .btn-card-action:hover { 
+            background: var(--primary-dark);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-card-action svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* Status Window Message Box Fallback Rules */
+        .status-message {
+            grid-column: 1 / -1;
+            padding: 60px;
+            background: var(--white);
+            border-radius: var(--radius-md);
+            border: 2px dashed #EFEAE2;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Runtime Injected Session Verification Framework Status Box Rules */
+        .nav-status {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .nav-status-msg {
+            color: #F7EAD3;
+            font-weight: 500;
+        }
+
+        .nav-status-link {
+            color: var(--white) !important;
+            border-bottom: 1px dashed var(--white);
+            text-decoration: none;
+            padding: 0 !important;
+        }
+
+        .nav-status-logout {
+            color: #FF8F8F !important;
+            font-weight: 600;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+
+        /* --- RESPONSIVE LAYOUT CONSTRAINTS --- */
+        @media (max-width: 1024px) {
+            .hero-split-container { grid-template-columns: 1fr; gap: 50px; }
+            .hero-image-side { order: -1; }
+            .features-ribbon { grid-template-columns: repeat(2, 1fr); margin: -30px 20px 40px 20px; }
+            .feature-card { border-right: none; }
+            header { padding: 30px 30px 50px 30px; }
+            .catalog-section { padding: 0 30px 60px 30px; }
+        }
+
+        @media (max-width: 768px) {
+            .navbar { flex-direction: column; gap: 20px; text-align: center; margin-bottom: 40px; }
+            .nav-links { flex-wrap: wrap; justify-content: center; gap: 16px; }
+            .hero-text-side h2 { font-size: 2.8rem; }
+            .features-ribbon { grid-template-columns: 1fr; }
+            .hero-actions-row { flex-direction: column; width: 100%; }
+            .hero-actions-row button { width: 100%; }
+        }
     </style>
-
 </head>
-
 <body>
 
-
-
 <div class="main-wrapper">
-
     <header>
+        <div class="navbar">
+            <div class="brand-block">
+                <div class="brand-logo-placeholder" style="background: url('https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=100&auto=format&fit=crop') center/cover;"></div>
+                <div class="brand-title">
+                    Clara's Best
+                    <span>Kakanin Delicacies</span>
+                </div>
+            </div>
+            
+            <div class="nav-links">
+                <a href="#" class="active">Home</a>
+                <a href="#">Products</a>
+                <a href="#">Order Now</a>
+                <a href="#">Reservations</a>
+                <a href="#">About Us</a>
+                <a href="#">Contact</a>
+            </div>
 
-        <h1>Clara's Best: Kakanin Delicacies</h1>
-
-        <div class="info-container">
-
-            <div class="info">📍 Poblacion, Hinunangan Southern Leyte</div>
-
-            <div class="info">📞 09686911702</div>
-
-            <div class="info">📧 jiajinbax911@gmail.com</div>
-
+            <div id="auth-status-bar" class="nav-auth-buttons">
+                <a href="/login.html" class="btn-outline-auth">
+                    <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                    Login
+                </a>
+                <a href="/login.html" class="btn-solid-auth">Register</a>
+            </div>
         </div>
 
-        <div class="info-container" style="margin-top: 5px;">
+        <div class="hero-split-container">
+            <div class="hero-text-side">
+                <div class="hero-badge">🔆 Welcome to Clara's Best</div>
+                <h2>Authentic Kakanin,<br><span>Made with Love</span></h2>
+                <p class="hero-tagline">Savor the rich flavors of our traditional kakanin, made fresh from the finest ingredients. Perfect for any occasion.</p>
+                
+                <div class="hero-actions-row">
+                    <button class="btn-hero-order" onclick="handleAction()">Order Now</button>
+                    <button class="btn-hero-reserve" onclick="handleAction()">Make a Reservation</button>
+                </div>
 
-            <div class="info">FB: Mary Claire Co-Baximen</div>
+                <div class="hero-contact-footer">
+                    <div class="contact-item">📍 Poblacion, Hinunangan, Southern Leyte</div>
+                    <div class="contact-item">📞 09686911702</div>
+                    <div class="contact-item">🌐 Mary Claire Co-Baximen</div>
+                </div>
+            </div>
 
+            <div class="hero-image-side">
+                <img class="bilao-display-ring" src="https://images.unsplash.com/photo-1621263764928-df1444c5e859?q=80&w=800&auto=format&fit=crop" alt="Clara's Best Premium Native Kakanin Bilao Display Collection Portfolio">
+            </div>
         </div>
-
-        
-
-        <!-- Dynamic user status bar injected safely into the header -->
-
-        <div id="auth-status-bar" class="nav-status"></div>
-
     </header>
 
+    <div class="features-ribbon">
+        <div class="feature-card">
+            <div class="feature-icon-box accent">🌿</div>
+            <div class="feature-text">
+                <h4>Fresh Ingredients</h4>
+                <p>Only the finest quality ingredients</p>
+            </div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon-box gold">🥞</div>
+            <div class="feature-text">
+                <h4>Traditional Recipes</h4>
+                <p>Authentic flavors passed down</p>
+            </div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon-box dark">❤️</div>
+            <div class="feature-text">
+                <h4>Made with Love</h4>
+                <p>Every delicacy is made with care</p>
+            </div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon-box delivery">🚚</div>
+            <div class="feature-text">
+                <h4>Pick-up & Delivery</h4>
+                <p>Convenient choices for your orders</p>
+            </div>
+        </div>
+    </div>
 
-
-    <h2 class="section-title">Our Native Delicacies</h2>
-
-    <div class="grid" id="product-container"></div>
-
+    <main class="catalog-section">
+        <div class="section-header-centered">
+            <h3>Our Best Sellers</h3>
+        </div>
+        
+        <div class="grid" id="product-container">
+            </div>
+    </main>
 </div>
 
-
-
 <script>
-
     // Global runtime variable tracking active authorization states
-
     let userSession = { loggedIn: false, role: null };
 
+    // Image mappings dictionary matching your structural product names directly to specific catalog assets 
+    const fallbackImages = {
+        'bibingka': 'https://images.unsplash.com/photo-1600326145359-3a44909d1a39?q=80&w=500&auto=format&fit=crop',
+        'sapin': 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=500&auto=format&fit=crop',
+        'kutsinta': 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=500&auto=format&fit=crop',
+        'biko': 'https://images.unsplash.com/photo-1621263764928-df1444c5e859?q=80&w=500&auto=format&fit=crop',
+        'puto': 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=500&auto=format&fit=crop',
+        'suman': 'https://images.unsplash.com/photo-1600326145359-3a44909d1a39?q=80&w=500&auto=format&fit=crop',
+        'cassava': 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=500&auto=format&fit=crop',
+        'maja': 'https://images.unsplash.com/photo-1621263764928-df1444c5e859?q=80&w=500&auto=format&fit=crop'
+    };
 
+    function getProductImage(name, imageUrl) {
+        if (imageUrl && imageUrl.trim() !== "" && !imageUrl.includes("null")) return imageUrl;
+        const lowerName = name.toLowerCase();
+        for (let key in fallbackImages) {
+            if (lowerName.includes(key)) return fallbackImages[key];
+        }
+        return 'https://images.unsplash.com/photo-1621263764928-df1444c5e859?q=80&w=500&auto=format&fit=crop';
+    }
 
     // 1. VERIFY AUTHENTICATION STATE AGAINST THE RUNNING NODE.JS ENGINE
-
     async function checkUserSession() {
-
         try {
-
             const response = await fetch('/api/session');
-
             const sessionData = await response.json();
-
             
-
             const statusBar = document.getElementById('auth-status-bar');
-
             
-
             if (sessionData.loggedIn) {
-
                 userSession.loggedIn = true;
-
                 userSession.role = sessionData.user.role;
-
                 
-
                 // Determine target redirection profile panel
-
                 let panelUrl = '/customer.html';
-
                 if (userSession.role === 'Admin') panelUrl = '/admin.html';
-
                 if (userSession.role === 'Staff') panelUrl = '/staff.html';
 
-
-
+                statusBar.className = "nav-status";
                 statusBar.innerHTML = `
-
-                    <span style="color: #f3e5ab; font-weight: 500;">Mabuhay, ${sessionData.user.name}! (${userSession.role})</span>
-
-                    <a href="${panelUrl}" style="color: #fff; border-bottom: 1px dashed #fff;">Go to Dashboard</a>
-
-                    <a href="#" onclick="processLogout(event)" style="color: #ff7675; font-weight: 600;">Logout</a>
-
+                    <span class="nav-status-msg">Mabuhay, ${sessionData.user.name}! (${userSession.role})</span>
+                    <a href="${panelUrl}" class="nav-status-link">Dashboard</a>
+                    <a href="#" onclick="processLogout(event)" class="nav-status-logout">Logout</a>
                 `;
-
             } else {
-
                 userSession.loggedIn = false;
-
                 userSession.role = null;
-
-                statusBar.innerHTML = `<a href="/login.html" style="color: #f3e5ab;">Customer Login / Sign Up</a>`;
-
+                statusBar.className = "nav-auth-buttons";
+                statusBar.innerHTML = `
+                    <a href="/login.html" class="btn-outline-auth">
+                        <svg style="width:14px;height:14px;fill:currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                        Login
+                    </a>
+                    <a href="/login.html" class="btn-solid-auth">Register</a>
+                `;
             }
-
         } catch (error) {
-
             console.error("Session sync down:", error);
-
-            document.getElementById('auth-status-bar').innerHTML = `<a href="/login.html" style="color: #f3e5ab;">Customer Login / Sign Up</a>`;
-
         }
-
     }
-
-
 
     // 2. LOAD PRODUCTS DIRECTLY FROM THE AIVEN BACKEND DATABASE
-
     async function loadProducts() {
-
         try {
-
             const res = await fetch('/api/products');
-
             const products = await res.json();
-
             const container = document.getElementById('product-container');
-
             
-
             if(products.length === 0) {
-
                 container.innerHTML = `
-
                     <div class="status-message">
-
                         <p>No products available right now. Check back later!</p>
-
                     </div>
-
                 `;
-
                 return;
-
             }
 
-
-
-            container.innerHTML = products.map(p => `
-
-                <div class="card">
-
-                    <div>
-
-                        <h3>${p.name}</h3>
-
-                        <p class="description">${p.description}</p>
-
+            container.innerHTML = products.map(p => {
+                const imageSrc = getProductImage(p.name, p.image_url);
+                return `
+                    <div class="card">
+                        <div>
+                            <div class="card-image-wrapper">
+                                <img src="${imageSrc}" alt="${p.name}">
+                            </div>
+                            <h3>${p.name}</h3>
+                            <p class="description">${p.description}</p>
+                        </div>
+                        <div class="card-footer-pricing">
+                            <div class="price-and-stock">
+                                <span class="price-tag">₱${parseFloat(p.price).toFixed(2)}</span>
+                                <span class="stock-tag">Stock: ${p.stock_quantity}</span>
+                            </div>
+                            <button class="btn-card-action" onclick="handleAction()" title="Add to Cart / Order">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M11 9h2V6h3V4h-3V1h-2v3H8v2h3v3zm-4 9c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zm-8.9-5h7.45c.75 0 1.41-.41 1.75-1.03l3.86-7.01L19.42 4l-3.87 7H8.53L4.27 2H1v2h2l3.6 7.59-1.35 2.44C4.52 15.37 5.48 17 7 17h12v-2H7l1.1-2z"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-
-                    <div style="width: 100%;">
-
-                        <p class="price-tag">₱${parseFloat(p.price).toFixed(2)}</p>
-
-                        <p class="stock-tag">Available Stock: ${p.stock_quantity}</p>
-
-                        <button onclick="handleAction()">Add to Cart / Order</button>
-
-                    </div>
-
-                </div>
-
-            `).join('');
-
+                `;
+            }).join('');
         } catch (error) {
-
             console.error("Error pulling product array:", error);
-
             document.getElementById('product-container').innerHTML = `
-
                 <div class="status-message" style="border-color: #ffcbd1; background-color: rgba(255,235,235,0.95);">
-
                     <p style="color: #d63031; font-weight: 600;">Unable to connect to service registry.</p>
-
                 </div>
-
             `;
-
         }
-
     }
-
-
 
     // 3. INTERCEPT INTERACTION ATTACKS REQUIRING SECURE LOGINS
-
     function handleAction() {
-
         if (!userSession.loggedIn) {
-
             alert("To place an order, make a reservation, or add items to your cart, please log in or sign up first.");
-
             window.location.href = '/login.html';
-
         } else {
-
             // Divert routing based on user permissions
-
             if (userSession.role === 'Customer') {
-
                 window.location.href = '/customer.html';
-
             } else if (userSession.role === 'Staff') {
-
                 window.location.href = '/staff.html';
-
             } else if (userSession.role === 'Admin') {
-
                 window.location.href = '/admin.html';
-
             }
-
         }
-
     }
-
-
 
     // 4. LOGOUT REMIT REQUEST EXECUTION
-
     async function processLogout(event) {
-
         event.preventDefault();
-
         const check = await fetch('/api/logout');
-
         if (check.ok) {
-
             alert("Logged out successfully.");
-
             window.location.reload();
-
         }
-
     }
-
-
 
     // Self-starting initialization triggers
-
     async function initPage() {
-
         await checkUserSession();
-
         await loadProducts();
-
     }
 
-
-
     initPage();
-
 </script>
-
 </body>
-
 </html>
