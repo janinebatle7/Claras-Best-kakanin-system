@@ -21,7 +21,7 @@
             <li><a href="payments.html">Payments</a></li>
             <li><a href="reports.html">Reports</a></li>
             <li><a href="settings.html">Settings</a></li>
-            <li class="logout-btn"><a href="#logout" id="logoutBtn">Logout</a></li>
+            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)">Logout</a></li>
         </ul>
     </nav>
     <main class="main-content">
@@ -159,6 +159,21 @@
         // Anti-XSS String Sanitization Helper
         function escapeHtml(str) {
             return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        async function processLogout(event) {
+            event.preventDefault();
+            if (!confirm("Are you sure you want to end your current session and sign out?")) return;
+
+            try {
+                const check = await fetch('/api/logout');
+                if (check.ok) {
+                    alert("Logged out successfully.");
+                    // Updated from local template location string to direct absolute root endpoint route context
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error("Logout runtime error network connection failure:", error);
+            }
         }
     </script>
 </body>

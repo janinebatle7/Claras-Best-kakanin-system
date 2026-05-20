@@ -176,7 +176,8 @@
                 const check = await fetch('/api/logout');
                 if (check.ok) {
                     alert("Logged out successfully.");
-                    window.location.href = 'login.html';
+                    // Updated from local template location string to direct absolute root endpoint route context
+                    window.location.href = '/login.html';
                 }
             } catch (error) {
                 console.error("Logout runtime error network connection failure:", error);

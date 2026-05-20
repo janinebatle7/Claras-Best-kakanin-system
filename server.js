@@ -2,6 +2,7 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
+const path = require('path'); // Added to ensure reliable, cross-platform absolute path resolution
 require('dotenv').config();
 
 const app = express();
@@ -186,11 +187,21 @@ app.post('/api/orders', async (req, res) => {
 });
 
 // --- RESERVATIONS SYSTEM MANAGEMENT ---
-// Seamlessly populates rows inside reservations.html data tables
+// Updated query structure to JOIN user names and safely populate reservations.html dashboard data tables
 app.get('/api/reservations', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied. Admin or Staff role required." });
     try {
-        const [rows] = await pool.query('SELECT * FROM reservations ORDER BY id DESC');
+        const [rows] = await pool.query(`
+            SELECT 
+                r.id AS booking_id,
+                u.name AS customer_name,
+                r.reservation_date AS date_time,
+                r.type,
+                r.status
+            FROM reservations r
+            JOIN users u ON r.user_id = u.id
+            ORDER BY r.id DESC
+        `);
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -262,6 +273,16 @@ app.put('/api/users/:id', async (req, res) => {
         await pool.query('UPDATE users SET role = ? WHERE id = ?', [role, req.params.id]);
         res.json({ message: "User account role altered successfully." });
     } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- EXPLICIT ROUTE REDIRECTS FOR STATIC LOGIN MAPPINGS ---
+// Resolves using path.join to ensure absolute paths serve the single login.html file reliably
+app.get('/login.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.get('/admin/login.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 const PORT = process.env.PORT || 3000;

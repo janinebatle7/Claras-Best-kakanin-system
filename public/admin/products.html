@@ -337,7 +337,7 @@
         }
 
         // 5. Clear session references cleanly
-        async function processLogout(event) {
+       async function processLogout(event) {
             event.preventDefault();
             if (!confirm("Are you sure you want to end your current session and sign out?")) return;
 
@@ -345,13 +345,13 @@
                 const check = await fetch('/api/logout');
                 if (check.ok) {
                     alert("Logged out successfully.");
-                    window.location.href = 'login.html';
+                    // Updated from local template location string to direct absolute root endpoint route context
+                    window.location.href = '/login.html';
                 }
             } catch (error) {
                 console.error("Logout runtime error network connection failure:", error);
             }
         }
-
         window.onload = fetchProductsList;
     </script>
 </body>

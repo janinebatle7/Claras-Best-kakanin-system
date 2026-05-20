@@ -52,12 +52,15 @@
         document.addEventListener('DOMContentLoaded', () => {
             fetchInventory();
 
-            // Clear stale session cookies cleanly on logout click
+            // Clear stale session cookies cleanly on logout click using absolute root paths
             document.getElementById('logoutBtn').addEventListener('click', async (e) => {
                 e.preventDefault();
                 try {
                     const res = await fetch('/api/logout');
-                    if (res.ok) window.location.href = 'login.html';
+                    if (res.ok) {
+                        // Updated to match backend absolute route redirection context
+                        window.location.href = '/login.html';
+                    }
                 } catch (err) {
                     console.error('Logout error context:', err);
                 }
