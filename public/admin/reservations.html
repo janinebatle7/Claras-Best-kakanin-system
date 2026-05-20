@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Reservations - Admin</title>
+    <meta charset="UTF-8">
+    <title>Reservations - Admin</title>
     <link rel="stylesheet" href="admin-style.css">
 </head>
 <body>
     <nav class="sidebar">
-        <div class="brand-section"><div class="brand-logo"></div><div class="brand-name">Clara's Best</div></div>
+        <div class="brand-section">
+            <div class="brand-logo"></div>
+            <div class="brand-name">Clara's Best</div>
+        </div>
         <ul class="sidebar-menu">
             <li><a href="admin.html">Dashboard</a></li>
             <li><a href="users.html">Users</a></li>
@@ -17,21 +21,145 @@
             <li><a href="payments.html">Payments</a></li>
             <li><a href="reports.html">Reports</a></li>
             <li><a href="settings.html">Settings</a></li>
-            <li class="logout-btn"><a href="#logout">Logout</a></li>
+            <li class="logout-btn"><a href="#logout" id="logoutBtn">Logout</a></li>
         </ul>
     </nav>
     <main class="main-content">
-        <div class="header-container"><div class="page-title"><h1>Reservation Bookings</h1></div></div>
+        <div class="header-container">
+            <div class="page-title"><h1>Reservation Bookings</h1></div>
+        </div>
         <div class="table-container">
             <table>
                 <thead>
-                    <tr><th>Booking ID</th><th>Customer</th><th>Date & Time</th><th>Type</th><th>Status</th></tr>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Customer</th>
+                        <th>Date & Time</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
                 </thead>
-                <tbody>
-                    <tr><td>#RES-9901</td><td>Maria Santos</td><td>June 24, 2026 - 2:00 PM</td><td>Dine-In</td><td><span class="badge success">Confirmed</span></td></tr>
+                <tbody id="reservationsTableBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 20px;">Loading bookings...</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchReservations();
+
+            // Handle clean logout actions
+            document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    const res = await fetch('/api/logout');
+                    if (res.ok) window.location.href = 'login.html';
+                } catch (err) {
+                    console.error('Logout failed:', err);
+                }
+            });
+        });
+
+        // Fetch bookings dynamically from database
+        async function fetchReservations() {
+            const tbody = document.getElementById('reservationsTableBody');
+            try {
+                const res = await fetch('/api/reservations');
+                
+                // If endpoint doesn't exist yet, handle gracefully for template display
+                if (res.status === 404) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td>#RES-9901</td>
+                            <td>Maria Santos</td>
+                            <td>June 24, 2026 - 2:00 PM</td>
+                            <td>Dine-In</td>
+                            <td><span class="badge confirmed">Confirmed</span></td>
+                            <td>
+                                <select onchange="alert('Endpoint route /api/reservations handles this change.')" style="padding: 4px; border-radius: 4px;">
+                                    <option value="" disabled selected>Update</option>
+                                    <option value="Confirmed">Confirmed</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                const reservations = await res.json();
+                
+                if (reservations.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px;">No reservation bookings found.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                
+                reservations.forEach(resv => {
+                    const tr = document.createElement('tr');
+                    
+                    // Normalize status names to match your styling selectors (.pending, .confirmed, .cancelled)
+                    let statusClass = (resv.status || 'Pending').toLowerCase();
+                    if (statusClass === 'success') statusClass = 'confirmed';
+
+                    // Formatting datetime cleanly
+                    const dateOptions = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                    const formattedDate = resv.reservation_time 
+                        ? new Date(resv.reservation_time).toLocaleDateString('en-US', dateOptions)
+                        : `${resv.date} - ${resv.time}`;
+
+                    tr.innerHTML = `
+                        <td><strong>#RES-${resv.id}</strong></td>
+                        <td>${escapeHtml(resv.customer_name || resv.name || 'Guest User')}</td>
+                        <td>${escapeHtml(formattedDate)}</td>
+                        <td>${escapeHtml(resv.type || 'Dine-In')}</td>
+                        <td><span class="badge ${statusClass}">${resv.status || 'Pending'}</span></td>
+                        <td>
+                            <select onchange="updateReservationStatus(${resv.id}, this.value)" style="padding: 4px; border-radius: 4px;">
+                                <option value="" disabled selected>Update</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                console.error('Error rendering reservations:', err);
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: red; padding: 20px;">Failed to load reservation registry from backend database.</td></tr>`;
+            }
+        }
+
+        // Send status updates back to the API controllers
+        async function updateReservationStatus(id, newStatus) {
+            try {
+                const res = await fetch(`/api/reservations/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                if (res.ok) {
+                    fetchReservations(); // Quick refresh
+                } else {
+                    alert('Could not update status. Verify authorization permissions.');
+                }
+            } catch (err) {
+                console.error('Update request failed:', err);
+            }
+        }
+
+        // Anti-XSS String Sanitization Helper
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    </script>
 </body>
 </html>

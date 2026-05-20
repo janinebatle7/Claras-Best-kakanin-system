@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Orders - Admin</title>
+    <meta charset="UTF-8">
+    <title>Orders - Admin</title>
     <link rel="stylesheet" href="admin-style.css">
 </head>
 <body>
     <nav class="sidebar">
-        <div class="brand-section"><div class="brand-logo"></div><div class="brand-name">Clara's Best</div></div>
+        <div class="brand-section">
+            <div class="brand-logo"></div>
+            <div class="brand-name">Clara's Best</div>
+        </div>
         <ul class="sidebar-menu">
             <li><a href="admin.html">Dashboard</a></li>
             <li><a href="users.html">Users</a></li>
@@ -17,21 +21,153 @@
             <li><a href="payments.html">Payments</a></li>
             <li><a href="reports.html">Reports</a></li>
             <li><a href="settings.html">Settings</a></li>
-            <li class="logout-btn"><a href="#logout">Logout</a></li>
+            <li class="logout-btn"><a href="#logout" id="logoutBtn">Logout</a></li>
         </ul>
     </nav>
     <main class="main-content">
-        <div class="header-container"><div class="page-title"><h1>Order Tracking</h1></div></div>
+        <div class="header-container">
+            <div class="page-title"><h1>Order Tracking</h1></div>
+        </div>
         <div class="table-container">
             <table>
                 <thead>
-                    <tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Type</th>
+                        <th>Payment Method</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Payment Status</th>
+                        <th>Actions</th>
+                    </tr>
                 </thead>
-                <tbody>
-                    <tr><td>#ORD-8821</td><td>Katrina Dedle</td><td>Puto (x2), Biko (x1)</td><td>₱92.00</td><td><span class="badge pending">Pending</span></td></tr>
+                <tbody id="ordersTableBody">
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 20px;">Loading data entries...</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchOrders();
+
+            // Setup working logout link interceptor
+            document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    const res = await fetch('/api/logout');
+                    if (res.ok) window.location.href = 'login.html';
+                } catch (err) {
+                    console.error('Logout operation failed:', err);
+                }
+            });
+        });
+
+        // Fetch orders from server repository schemas
+        async function fetchOrders() {
+            const tbody = document.getElementById('ordersTableBody');
+            try {
+                const res = await fetch('/api/orders');
+                if (!res.ok) {
+                    throw new Error(`Server returned HTTP code ${res.status}`);
+                }
+                const orders = await res.json();
+                
+                if (orders.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 20px;">No registered orders discovered in the log files.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = ''; // Wipe loading indicator placeholder cleanly
+                
+                orders.forEach(order => {
+                    const tr = document.createElement('tr');
+                    
+                    // Match status values cleanly to your badge look and feel layouts
+                    const orderStatusClass = (order.order_status || 'Pending').toLowerCase();
+                    const paymentStatusClass = (order.payment_status || 'Pending').toLowerCase();
+
+                    tr.innerHTML = `
+                        <td><strong>#ORD-${order.id}</strong></td>
+                        <td>${escapeHtml(order.customer_name || 'Anonymous User')}</td>
+                        <td>${escapeHtml(order.type || 'Pickup')}</td>
+                        <td>${escapeHtml(order.payment_method || 'Cash')}</td>
+                        <td><strong>₱${parseFloat(order.total_price).toFixed(2)}</strong></td>
+                        <td><span class="badge ${orderStatusClass}">${order.order_status || 'Pending'}</span></td>
+                        <td><span class="badge ${paymentStatusClass}">${order.payment_status || 'Pending'}</span></td>
+                        <td>
+                            <select onchange="updateOrderStatus(${order.id}, this.value, '${order.payment_status}')" style="padding: 4px; border-radius: 4px;">
+                                <option value="" disabled selected>Update Status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Preparing">Preparing</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                            <button onclick="togglePaymentStatus(${order.id}, '${order.order_status}', '${order.payment_status}')" style="margin-left: 5px; padding: 4px 8px; border: none; background: #ddd; border-radius: 4px; cursor: pointer;">
+                                Mark ${order.payment_status === 'Paid' ? 'Unpaid' : 'Paid'}
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                console.error('Could not parse orders registry:', err);
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: red; padding: 20px;">Failed to compile data stream records from endpoint. Make sure you are logged in as admin.</td></tr>`;
+            }
+        }
+
+        // Send PUT actions straight into your server endpoint updates
+        async function updateOrderStatus(orderId, newOrderStatus, currentPaymentStatus) {
+            try {
+                const res = await fetch(`/api/orders/${orderId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        order_status: newOrderStatus,
+                        payment_status: currentPaymentStatus
+                    })
+                });
+                if (res.ok) {
+                    fetchOrders(); // Reload instantly
+                } else {
+                    alert('Authorization verification dropped. Action denied.');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Toggle payment flags smoothly across the same backend controller logic block
+        async function togglePaymentStatus(orderId, currentOrderStatus, currentPaymentStatus) {
+            const nextPaymentState = currentPaymentStatus === 'Paid' ? 'Pending' : 'Paid';
+            try {
+                const res = await fetch(`/api/orders/${orderId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        order_status: currentOrderStatus,
+                        payment_status: nextPaymentState
+                    })
+                });
+                if (res.ok) {
+                    fetchOrders();
+                } else {
+                    alert('Failed to modify payment reference structures.');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Helper framework script parsing component preventing cross-site break structural leaks
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    </script>
 </body>
 </html>

@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Inventory - Admin</title>
+    <meta charset="UTF-8">
+    <title>Inventory - Admin</title>
     <link rel="stylesheet" href="admin-style.css">
 </head>
 <body>
     <nav class="sidebar">
-        <div class="brand-section"><div class="brand-logo"></div><div class="brand-name">Clara's Best</div></div>
+        <div class="brand-section">
+            <div class="brand-logo"></div>
+            <div class="brand-name">Clara's Best</div>
+        </div>
         <ul class="sidebar-menu">
             <li><a href="admin.html">Dashboard</a></li>
             <li><a href="users.html">Users</a></li>
@@ -17,22 +21,146 @@
             <li><a href="payments.html">Payments</a></li>
             <li><a href="reports.html">Reports</a></li>
             <li><a href="settings.html">Settings</a></li>
-            <li class="logout-btn"><a href="#logout">Logout</a></li>
+            <li class="logout-btn"><a href="#logout" id="logoutBtn">Logout</a></li>
         </ul>
     </nav>
     <main class="main-content">
-        <div class="header-container"><div class="page-title"><h1>Inventory Control</h1></div></div>
+        <div class="header-container">
+            <div class="page-title"><h1>Inventory Control</h1></div>
+        </div>
         <div class="table-container">
             <table>
                 <thead>
-                    <tr><th>Item Name</th><th>Stock Level</th><th>Unit</th><th>Status</th></tr>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Stock Level</th>
+                        <th>Unit</th>
+                        <th>Status</th>
+                        <th>Manage Stock</th>
+                    </tr>
                 </thead>
-                <tbody>
-                    <tr><td>Glutinous Rice</td><td>50</td><td>kg</td><td><span class="badge success">In Stock</span></td></tr>
-                    <tr><td>Sugar</td><td>5</td><td>kg</td><td><span class="badge pending">Low Stock</span></td></tr>
+                <tbody id="inventoryTableBody">
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 20px;">Loading inventory items...</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchInventory();
+
+            // Clear stale session cookies cleanly on logout click
+            document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    const res = await fetch('/api/logout');
+                    if (res.ok) window.location.href = 'login.html';
+                } catch (err) {
+                    console.error('Logout error context:', err);
+                }
+            });
+        });
+
+        // Pull product quantities dynamically from backend schemas
+        async function fetchInventory() {
+            const tbody = document.getElementById('inventoryTableBody');
+            try {
+                const res = await fetch('/api/products');
+                if (!res.ok) throw new Error(`HTTP Error Status: ${res.status}`);
+                
+                const products = await res.json();
+                
+                if (products.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px;">No registered product entries discovered.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = ''; // Wipe loading text cleanly
+                
+                products.forEach(item => {
+                    const tr = document.createElement('tr');
+                    const stock = parseInt(item.stock_quantity) || 0;
+                    
+                    // Automatically calculate badge classes based on standard limits
+                    let statusText = 'In Stock';
+                    let statusClass = 'success'; // matches class="badge success"
+                    
+                    if (stock === 0) {
+                        statusText = 'Out of Stock';
+                        statusClass = 'cancelled'; // uses your red alert styling class
+                    } else if (stock <= 10) {
+                        statusText = 'Low Stock';
+                        statusClass = 'pending'; // matches class="badge pending" orange/yellow
+                    }
+
+                    tr.innerHTML = `
+                        <td><strong>${escapeHtml(item.name)}</strong></td>
+                        <td><span id="stock-val-${item.id}">${stock}</span></td>
+                        <td>pcs / batches</td>
+                        <td><span class="badge ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <div style="display: flex; gap: 5px; align-items: center;">
+                                <input type="number" id="input-${item.id}" value="${stock}" min="0" style="width: 70px; padding: 4px; border-radius: 4px; border: 1px solid #ccc;">
+                                <button onclick="quickUpdateStock(${item.id}, ${JSON.stringify(item)})" style="padding: 4px 8px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                    Update
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                console.error('Could not load inventory:', err);
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red; padding: 20px;">Failed to gather database matrix lists. Ensure server schema paths are active.</td></tr>`;
+            }
+        }
+
+        // Send changes back through your POST /api/products route or target controllers safely
+        async function quickUpdateStock(productId, baseItem) {
+            const newStockValue = parseInt(document.getElementById(`input-${productId}`).value);
+            if (isNaN(newStockValue) || newStockValue < 0) {
+                alert('Please register a valid positive quantitative value.');
+                return;
+            }
+
+            try {
+                // Modifies the item tracking attributes inside the core object references
+                const res = await fetch(`/api/products/${productId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: baseItem.name,
+                        category: baseItem.description || baseItem.category,
+                        price: baseItem.price,
+                        stock_quantity: newStockValue,
+                        image_url: baseItem.image_url
+                    })
+                });
+
+                // If a specific PUT route isn't set up yet, fallback message notifies smoothly
+                if (res.status === 404) {
+                    alert('Make sure your backend server contains a PUT /api/products/:id route handler to permanently save inventory overrides!');
+                    return;
+                }
+
+                if (res.ok) {
+                    fetchInventory(); // Reload instantly to update badges
+                } else {
+                    alert('Access Denied. Check permission configurations.');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Sanitization logic block
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    </script>
 </body>
 </html>

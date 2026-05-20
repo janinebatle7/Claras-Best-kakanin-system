@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Payments - Admin</title>
+    <meta charset="UTF-8">
+    <title>Payments - Admin</title>
     <link rel="stylesheet" href="admin-style.css">
 </head>
 <body>
     <nav class="sidebar">
-        <div class="brand-section"><div class="brand-logo"></div><div class="brand-name">Clara's Best</div></div>
+        <div class="brand-section">
+            <div class="brand-logo"></div>
+            <div class="brand-name">Clara's Best</div>
+        </div>
         <ul class="sidebar-menu">
             <li><a href="admin.html">Dashboard</a></li>
             <li><a href="users.html">Users</a></li>
@@ -17,21 +21,112 @@
             <li class="active"><a href="payments.html">Payments</a></li>
             <li><a href="reports.html">Reports</a></li>
             <li><a href="settings.html">Settings</a></li>
-            <li class="logout-btn"><a href="#logout">Logout</a></li>
+            <li class="logout-btn"><a href="#logout" id="logoutBtn">Logout</a></li>
         </ul>
     </nav>
     <main class="main-content">
-        <div class="header-container"><div class="page-title"><h1>Payment Verification</h1></div></div>
+        <div class="header-container">
+            <div class="page-title"><h1>Payment Verification</h1></div>
+        </div>
         <div class="table-container">
             <table>
                 <thead>
-                    <tr><th>Transaction ID</th><th>Method</th><th>Reference No.</th><th>Amount</th><th>Verification</th></tr>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Order ID</th>
+                        <th>Method</th>
+                        <th>Reference No.</th>
+                        <th>Amount</th>
+                        <th>Paid At</th>
+                        <th>Verification</th>
+                    </tr>
                 </thead>
-                <tbody>
-                    <tr><td>#PAY-7711</td><td>GCash</td><td>Ref: 901238412</td><td>₱325.00</td><td><button class="action-btn">View Proof</button></td></tr>
+                <tbody id="paymentsTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 20px;">Loading payment history entries...</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchPayments();
+
+            // Clear session context safely on admin logout
+            document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    const res = await fetch('/api/logout');
+                    if (res.ok) window.location.href = 'login.html';
+                } catch (err) {
+                    console.error('Logout error context:', err);
+                }
+            });
+        });
+
+        // Pull transaction items dynamically from backend table rows
+        async function fetchPayments() {
+            const tbody = document.getElementById('paymentsTableBody');
+            try {
+                const res = await fetch('/api/payments');
+                if (!res.ok) throw new Error(`HTTP Error Status: ${res.status}`);
+                
+                const payments = await res.json();
+                
+                if (payments.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px;">No transaction entries discovered in the registry logs.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = ''; // Wipe loading placeholder safely
+                
+                payments.forEach(pay => {
+                    const tr = document.createElement('tr');
+                    
+                    // Format database timestamp nicely to local date and time string
+                    const paidDate = pay.paid_at 
+                        ? new Date(pay.paid_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                        : 'N/A';
+
+                    tr.innerHTML = `
+                        <td><strong>#PAY-${pay.id}</strong></td>
+                        <td>#ORD-${pay.order_id || 'N/A'}</td>
+                        <td>${escapeHtml(pay.payment_method || 'GCash')}</td>
+                        <td><code>${escapeHtml(pay.reference_number || 'Direct/Cash')}</code></td>
+                        <td><strong>₱${parseFloat(pay.amount || 0).toFixed(2)}</strong></td>
+                        <td>${paidDate}</td>
+                        <td>
+                            <button class="action-btn" onclick="viewProof('${escapeHtml(pay.reference_number || 'N/A')}', '${escapeHtml(pay.proof_image || '')}')">
+                                View Proof
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                console.error('Could not render payments page logic:', err);
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: red; padding: 20px;">Failed to gather database schemas. Ensure your admin login session is active.</td></tr>`;
+            }
+        }
+
+        // Display transaction details or uploaded screenshots
+        function viewProof(refNum, imgUrl) {
+            if (imgUrl && imgUrl !== 'null' && imgUrl !== '') {
+                // If you store actual upload links/images in your database table row
+                window.open(imgUrl, '_blank');
+            } else {
+                // Quick fallback alert displaying transaction metadata info safely
+                alert(`Payment Reference Metadata:\n\nReference Number: ${refNum}\nNo attachment uploaded. Cross-check your GCash business account ledger.`);
+            }
+        }
+
+        // Sanitization helper keeping layouts clean
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    </script>
 </body>
 </html>
