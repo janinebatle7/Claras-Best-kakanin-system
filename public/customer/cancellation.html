@@ -24,53 +24,79 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; min-height: 100vh; color: var(--text-dark); }
         
         /* Sidebar Layout Frame */
-        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; left: 0; top: 0; z-index: 100; }
-        .sidebar-brand { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 40px; padding-left: 12px; border-left: 4px solid var(--primary-light); }
-        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; flex-grow: 1; }
-        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-md); transition: var(--transition); }
-        .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); }
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 20px; position: fixed; height: 100vh; left: 0; top: 0; z-index: 100; }
+        
+        .brand-container { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 24px; padding-left: 12px; }
+        .brand-logo-text { font-size: 18px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .brand-subtext { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: -2px; }
+
+        .sidebar-menu { display: flex; flex-direction: column; gap: 4px; list-style: none; flex-grow: 1; }
+        .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 13px; border-radius: var(--radius-sm); transition: var(--transition); }
+        .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); font-weight: 700; }
+        .menu-link-group { display: flex; align-items: center; gap: 4px; width: 100%; justify-content: space-between; }
+        
+        /* Dynamic Cart Badge Counter Pill */
+        .cart-badge-count { background: #e7e5e4; color: var(--text-dark); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; display: inline-block; transition: var(--transition); }
+        .menu-item:hover .cart-badge-count, .menu-item.active .cart-badge-count { background: var(--primary-light); color: white; }
+
         .menu-item.logout-btn { margin-top: auto; color: #dc2626; }
         .menu-item.logout-btn:hover { background-color: #fef2f2; }
 
         /* Content Workspace */
-        .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; max-width: 1200px; width: calc(100% - 280px); }
-        .card { background: white; padding: 32px; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 32px; box-shadow: 0 4px 20px rgba(120, 53, 15, 0.02); transition: var(--transition); opacity: 0; transform: translateY(10px); }
+        .main-content { flex-grow: 1; margin-left: 280px; padding: 40px; max-width: 1200px; width: calc(100% - 280px); }
+        .card { background: white; padding: 24px; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 32px; box-shadow: 0 4px 20px rgba(120, 53, 15, 0.01); transition: var(--transition); opacity: 0; transform: translateY(10px); }
         .card.reveal { opacity: 1; transform: translateY(0); }
         
         /* Interactive Input Form Contexts */
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 12px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
-        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; color: var(--text-dark); background-color: #ffffff; transition: var(--transition); resize: vertical; }
-        .form-control:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1); }
+        .form-group label { display: block; font-size: 11px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+        .form-control { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; font-size: 13.5px; color: var(--text-dark); background-color: #ffffff; transition: var(--transition); resize: vertical; }
+        .form-control:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.08); }
         
-        .btn { padding: 14px 28px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; background: var(--primary-light); color: white; transition: var(--transition); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; width: 100%; }
-        .btn:hover { background: var(--primary); box-shadow: 0 4px 12px rgba(120, 53, 15, 0.15); }
+        .btn { padding: 12px 24px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; background: var(--primary-light); color: white; transition: var(--transition); display: inline-flex; align-items: center; justify-content: center; font-size: 13.5px; width: 100%; }
+        .btn:hover { background: var(--primary); box-shadow: 0 4px 12px rgba(120, 53, 15, 0.12); }
         .btn:active { transform: scale(0.99); }
         
         /* History Ledger Table Components */
-        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); background: white; box-shadow: 0 4px 20px rgba(120, 53, 15, 0.02); opacity: 0; transform: translateY(10px); transition: var(--transition); }
+        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); background: white; box-shadow: 0 4px 20px rgba(120, 53, 15, 0.01); opacity: 0; transform: translateY(10px); transition: var(--transition); }
         .table-responsive.reveal { opacity: 1; transform: translateY(0); }
-        .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-        .data-table th, .data-table td { padding: 16px 20px; border-bottom: 1px solid var(--border); }
-        .data-table th { background: #faf9f6; color: var(--primary); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; min-width: 700px; }
+        .data-table th, .data-table td { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+        .data-table th { background: #faf9f6; color: var(--text-muted); font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border); }
         
         /* Dynamic Status Badges */
-        .badge { display: inline-flex; padding: 6px 14px; font-size: 11px; font-weight: 700; border-radius: 30px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge { display: inline-flex; padding: 4px 10px; font-size: 11px; font-weight: 800; border-radius: 30px; text-transform: uppercase; letter-spacing: 0.5px; }
         
         .log-row { opacity: 0; transform: translateY(6px); transition: var(--transition); }
         .log-row.visible { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; height: auto; position: relative; padding: 16px; }
+            body { flex-direction: column; }
+            .main-content { margin-left: 0; padding: 24px; width: 100%; }
+        }
     </style>
 </head>
 <body>
     <nav class="sidebar">
-        <div class="sidebar-brand">Clara's Best</div>
+        <div class="brand-container">
+            <span class="brand-logo-text">Clara's Best</span>
+            <span class="brand-subtext">Kakanin Delicacies</span>
+        </div>
         <ul class="sidebar-menu">
-            <li><a href="customer.html" class="menu-item">Home</a></li>
+            <li><a href="dashboard.html" class="menu-item">Dashboard</a></li>
             <li><a href="products.html" class="menu-item">Products</a></li>
-            <li><a href="cart.html" class="menu-item">Cart</a></li>
+            <li>
+                <a href="cart.html" class="menu-item">
+                    <div class="menu-link-group">
+                        <span>Cart</span>
+                        <span class="cart-badge-count" id="sidebar-cart-counter">0</span>
+                    </div>
+                </a>
+            </li>
             <li><a href="orders.html" class="menu-item">My Orders</a></li>
             <li><a href="reservation.html" class="menu-item">My Reservations</a></li>
-            <li><a href="cancellation.html" class="menu-item active">Cancellations</a></li>
+            <li><a href="cancellation.html" class="menu-item active">Cancellation Requests</a></li>
             <li><a href="payment.html" class="menu-item">Payments</a></li>
             <li><a href="profile.html" class="menu-item">Profile</a></li>
             <li class="logout-btn"><a href="#logout" class="menu-item logout-btn" id="logout-trigger">Logout</a></li>
@@ -78,10 +104,11 @@
     </nav>
     
     <main class="main-content">
-        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px; font-family: 'Georgia', serif; color: var(--primary);">Manage Cancellations</h2>
+        <h2 style="font-size: 26px; font-weight: 800; margin-bottom: 8px; color: var(--text-dark);">Manage Cancellations</h2>
+        <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 32px;">File reversal claims on pending orders or track audit validations for existing cancellation requests.</p>
         
         <div class="card" id="cancellation-card">
-            <h3 style="font-size:16px; margin-bottom:20px; font-weight:800; color:var(--primary);">File Cancellation Claim</h3>
+            <h3 style="font-size:14px; margin-bottom:20px; font-weight:800; color:var(--primary); text-transform: uppercase; letter-spacing: 0.5px;">File Cancellation Claim</h3>
             <div class="form-group">
                 <label for="cancel-id">Transaction Target ID</label>
                 <input type="number" id="cancel-id" class="form-control" placeholder="e.g. 1045">
@@ -102,7 +129,13 @@
                         <th>Review Status</th>
                     </tr>
                 </thead>
-                <tbody id="cancellations-tbody"></tbody>
+                <tbody id="cancellations-tbody">
+                    <tr>
+                        <td colspan="3" style="text-align:center; padding: 40px 0; color: var(--text-muted); font-style: italic;">
+                            Loading historical cancellation logs...
+                        </td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </main>
@@ -114,6 +147,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             revealComponents();
             loadCancellations();
+            syncSidebarCartCount();
 
             const submitBtn = document.getElementById('btn-submit-cancel');
             if (submitBtn) submitBtn.addEventListener('click', submitCancel);
@@ -134,24 +168,21 @@
         }
 
         /**
-         * Queries order indexes to filter out and display current active cancellation files
+         * Queries cancellations endpoint to fetch user's explicit cancellation request rows
          */
         async function loadCancellations() {
             try {
-                const res = await fetch('/api/orders');
+                const res = await fetch('/api/cancellations/history');
                 if (!res.ok) throw new Error(`HTTP data pipeline error: ${res.status}`);
                 
-                const data = await res.json();
+                const items = await res.json();
                 const tbody = document.getElementById('cancellations-tbody');
                 if (!tbody) return;
 
                 tbody.innerHTML = '';
                 
-                // Matches items with an active cancellation profile attached
-                const items = data.filter(t => t.cancellation_status && t.cancellation_status !== 'None');
-                
                 if (!items || items.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:32px 0; color:var(--text-muted); font-style:italic;">No historical cancellation logs found.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:40px 0; color:var(--text-muted); font-style:italic;">No historical cancellation logs found.</td></tr>`;
                     return;
                 }
                 
@@ -161,17 +192,17 @@
                     const tr = document.createElement('tr');
                     tr.className = 'log-row';
                     
-                    const targetId = escapeHtml(String(t.id));
-                    const reason = escapeHtml(t.cancellation_reason || 'No rationale specified.');
-                    const rawStatus = t.cancellation_status || 'Pending';
+                    const targetId = escapeHtml(String(t.target_id));
+                    const reason = escapeHtml(t.reason || 'No rationale specified.');
+                    const rawStatus = t.status || 'Pending';
                     const cleanStatus = escapeHtml(rawStatus);
                     
-                    // Assign specific styles to matches contextual process states
-                    let badgeStyles = 'background: #fffbeb; color: #b45309;'; // Amber for Pending/Reviewing
+                    // Assign specific styles to match contextual process states
+                    let badgeStyles = 'background: #fffbeb; color: #b45309;'; // Amber for Pending
                     if (rawStatus.toLowerCase() === 'approved' || rawStatus.toLowerCase() === 'cancelled') {
-                        badgeStyles = 'background: #f0fdf4; color: #16a34a;'; // Green for confirmed cancellations
+                        badgeStyles = 'background: #f0fdf4; color: #16a34a;'; // Green for Approved
                     } else if (rawStatus.toLowerCase() === 'rejected' || rawStatus.toLowerCase() === 'declined') {
-                        badgeStyles = 'background: #fef2f2; color: #dc2626;'; // Red for rejected adjustments
+                        badgeStyles = 'background: #fef2f2; color: #dc2626;'; // Red for Rejected
                     }
 
                     tr.innerHTML = `
@@ -188,7 +219,11 @@
                 
                 tbody.appendChild(tableFragment);
             } catch(err) { 
-                console.error("Critical interrupt constructing cancellation history matrix:", err); 
+                console.error("Critical interruption constructing cancellation history matrix:", err); 
+                const tbody = document.getElementById('cancellations-tbody');
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#dc2626; font-weight:600; padding:32px 0;">Failed to load cancellation dynamic logs.</td></tr>`;
+                }
             }
         }
 
@@ -210,6 +245,7 @@
             }
             
             try {
+                // Pointing to your order cancellation route schema matching request handling configurations
                 const res = await fetch(`/api/orders/${id}/cancel`, { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
@@ -232,6 +268,22 @@
         }
 
         /**
+         * Syncs sidebar item counter badge cleanly with current localStorage state arrays
+         */
+        function syncSidebarCartCount() {
+            try {
+                const localCart = JSON.parse(localStorage.getItem('userCart')) || [];
+                const totalItems = localCart.reduce((acc, item) => acc + (parseInt(item.quantity) || 0), 0);
+                const counterBadge = document.getElementById('sidebar-cart-counter');
+                if (counterBadge) {
+                    counterBadge.textContent = totalItems;
+                }
+            } catch (e) {
+                console.error("Sidebar runtime error reading structural state parameters:", e);
+            }
+        }
+
+        /**
          * Ends existing interface sessions securely
          */
         async function processLogout(event) {
@@ -248,7 +300,7 @@
                 }
             } catch (error) {
                 console.error("Logout state channel conflict:", error);
-                window.location.href = '/login.html'; // Direct escape boundary tracking lock
+                window.location.href = '/login.html';
             }
         }
 

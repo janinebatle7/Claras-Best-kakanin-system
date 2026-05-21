@@ -24,49 +24,77 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; min-height: 100vh; color: var(--text-dark); }
         
         /* Sidebar Navigation Menu Layout Frame */
-        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; left: 0; top: 0; z-index: 100; }
-        .sidebar-brand { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 40px; padding-left: 12px; border-left: 4px solid var(--primary-light); }
-        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; flex-grow: 1; }
-        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-md); transition: var(--transition); }
-        .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); }
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 20px; position: fixed; height: 100vh; left: 0; top: 0; z-index: 100; }
+        
+        .brand-container { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 24px; padding-left: 12px; }
+        .brand-logo-text { font-size: 18px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .brand-subtext { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: -2px; }
+
+        .sidebar-menu { display: flex; flex-direction: column; gap: 4px; list-style: none; flex-grow: 1; }
+        .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 13px; border-radius: var(--radius-sm); transition: var(--transition); }
+        .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); font-weight: 700; }
+        .menu-link-group { display: flex; align-items: center; gap: 4px; width: 100%; justify-content: space-between; }
+        
+        /* Dynamic Cart Badge Counter Pill */
+        .cart-badge-count { background: #e7e5e4; color: var(--text-dark); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; display: inline-block; transition: var(--transition); }
+        .menu-item:hover .cart-badge-count, .menu-item.active .cart-badge-count { background: var(--primary-light); color: white; }
+
         .menu-item.logout-btn { margin-top: auto; color: #dc2626; }
         .menu-item.logout-btn:hover { background-color: #fef2f2; }
 
         /* Workspace Core Window Wrapper */
-        .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; max-width: 1200px; width: calc(100% - 280px); }
-        .card { background: white; padding: 32px; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 32px; box-shadow: 0 4px 20px rgba(120, 53, 15, 0.02); }
+        .main-content { flex-grow: 1; margin-left: 280px; padding: 40px; max-width: 1200px; width: calc(100% - 280px); }
+        .card { background: white; padding: 24px; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 32px; box-shadow: 0 4px 20px rgba(120, 53, 15, 0.01); transition: var(--transition); opacity: 0; transform: translateY(10px); }
+        .card.reveal { opacity: 1; transform: translateY(0); }
         
         /* Interactive Input Form Component Layout elements */
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 12px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
-        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; color: var(--text-dark); background-color: #ffffff; transition: var(--transition); }
-        .form-control:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1); }
+        .form-group label { display: block; font-size: 11px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+        .form-control { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; font-size: 13.5px; color: var(--text-dark); background-color: #ffffff; transition: var(--transition); }
+        .form-control:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.08); }
         
         /* Form Action Buttons */
-        .btn { padding: 14px 28px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; background: var(--primary-light); color: white; transition: var(--transition); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; width: 100%; }
-        .btn:hover { background: var(--primary); box-shadow: 0 4px 12px rgba(120, 53, 15, 0.15); }
+        .btn { padding: 12px 24px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; background: var(--primary-light); color: white; transition: var(--transition); display: inline-flex; align-items: center; justify-content: center; font-size: 13.5px; width: 100%; }
+        .btn:hover { background: var(--primary); box-shadow: 0 4px 12px rgba(120, 53, 15, 0.12); }
         .btn:active { transform: scale(0.99); }
         
         /* Ledgers & Financial Record Output Presentation styling */
-        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); background: white; box-shadow: 0 4px 20px rgba(120, 53, 15, 0.02); }
-        .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-        .data-table th, .data-table td { padding: 16px 20px; border-bottom: 1px solid var(--border); }
-        .data-table th { background: #faf9f6; color: var(--primary); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); background: white; box-shadow: 0 4px 20px rgba(120, 53, 15, 0.01); opacity: 0; transform: translateY(10px); transition: var(--transition); }
+        .table-responsive.reveal { opacity: 1; transform: translateY(0); }
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; min-width: 700px; }
+        .data-table th, .data-table td { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+        .data-table th { background: #faf9f6; color: var(--text-muted); font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border); }
         
         .payment-row { opacity: 0; transform: translateY(6px); transition: var(--transition); }
         .payment-row.visible { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; height: auto; position: relative; padding: 16px; }
+            body { flex-direction: column; }
+            .main-content { margin-left: 0; padding: 24px; width: 100%; }
+        }
     </style>
 </head>
 <body>
     <nav class="sidebar">
-        <div class="sidebar-brand">Clara's Best</div>
+        <div class="brand-container">
+            <span class="brand-logo-text">Clara's Best</span>
+            <span class="brand-subtext">Kakanin Delicacies</span>
+        </div>
         <ul class="sidebar-menu">
-            <li><a href="customer.html" class="menu-item">Home</a></li>
+            <li><a href="dashboard.html" class="menu-item">Dashboard</a></li>
             <li><a href="products.html" class="menu-item">Products</a></li>
-            <li><a href="cart.html" class="menu-item">Cart</a></li>
+            <li>
+                <a href="cart.html" class="menu-item">
+                    <div class="menu-link-group">
+                        <span>Cart</span>
+                        <span class="cart-badge-count" id="sidebar-cart-counter">0</span>
+                    </div>
+                </a>
+            </li>
             <li><a href="orders.html" class="menu-item">My Orders</a></li>
             <li><a href="reservation.html" class="menu-item">My Reservations</a></li>
-            <li><a href="cancellation.html" class="menu-item">Cancellations</a></li>
+            <li><a href="cancellation.html" class="menu-item">Cancellation Requests</a></li>
             <li><a href="payment.html" class="menu-item active">Payments</a></li>
             <li><a href="profile.html" class="menu-item">Profile</a></li>
             <li class="logout-btn"><a href="#logout" class="menu-item logout-btn" id="logout-trigger">Logout</a></li>
@@ -74,12 +102,11 @@
     </nav>
     
     <main class="main-content">
-        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px; font-family: 'Georgia', serif; color: var(--primary);">Payments Registry</h2>
+        <h2 style="font-size: 26px; font-weight: 800; margin-bottom: 8px; color: var(--text-dark);">Payments Registry</h2>
+        <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 32px;">Submit remittance receipts for verification or review historical transaction audits.</p>
         
-        <div class="card">
-            <h3 style="font-size:16px; margin-bottom:20px; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px;">
-                Verify GCash Remittance Receipt
-            </h3>
+        <div class="card" id="payment-card">
+            <h3 style="font-size:14px; margin-bottom:20px; font-weight:800; color:var(--primary); text-transform: uppercase; letter-spacing: 0.5px;">Verify GCash Remittance Receipt</h3>
             <div class="form-group">
                 <label for="pay-order-id">Order / Reservation ID</label>
                 <input type="number" id="pay-order-id" class="form-control" placeholder="e.g. 1024">
@@ -95,7 +122,7 @@
             <button class="btn" id="btn-submit-payment">Upload Verified Remittance</button>
         </div>
         
-        <div class="table-responsive">
+        <div class="table-responsive" id="table-container">
             <table class="data-table">
                 <thead>
                     <tr>
@@ -105,7 +132,13 @@
                         <th>Timestamp Execution</th>
                     </tr>
                 </thead>
-                <tbody id="payments-tbody"></tbody>
+                <tbody id="payments-tbody">
+                    <tr>
+                        <td colspan="4" style="text-align:center; padding: 40px 0; color: var(--text-muted); font-style: italic;">
+                            Loading payment logs...
+                        </td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </main>
@@ -115,7 +148,9 @@
          * Safely parameters setup hooks when document content trees pass compilation state
          */
         document.addEventListener('DOMContentLoaded', () => {
+            revealComponents();
             loadPayments();
+            syncSidebarCartCount();
 
             const paymentBtn = document.getElementById('btn-submit-payment');
             if (paymentBtn) {
@@ -137,6 +172,17 @@
         });
 
         /**
+         * Smoothly handles component intro animations upon interface mount
+         */
+        function revealComponents() {
+            const formCard = document.getElementById('payment-card');
+            const tableBox = document.getElementById('table-container');
+            
+            if (formCard) setTimeout(() => formCard.classList.add('reveal'), 50);
+            if (tableBox) setTimeout(() => tableBox.classList.add('reveal'), 150);
+        }
+
+        /**
          * Fetches remittance objects through active validation endpoints
          */
         async function loadPayments() {
@@ -151,7 +197,7 @@
                 tbody.innerHTML = '';
                 
                 if (!lines || lines.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:32px 0; color:var(--text-muted); font-style:italic;">No historic ledger records found.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:40px 0; color:var(--text-muted); font-style:italic;">No historic ledger records found.</td></tr>`;
                     return;
                 }
                 
@@ -172,8 +218,8 @@
 
                     tr.innerHTML = `
                         <td><strong>TXN-${safeTxnId}</strong></td>
-                        <td>#${safeOrderId}</td>
-                        <td style="font-weight: 600; color: #16a34a;">₱${safeAmount}</td>
+                        <td style="color: var(--text-muted);">#${safeOrderId}</td>
+                        <td style="font-weight: 700; color: #16a34a;">₱${safeAmount}</td>
                         <td style="color: var(--text-muted);">${formattedDate}</td>
                     `;
                     
@@ -186,6 +232,10 @@
                 tbody.appendChild(executionFragment);
             } catch(err) { 
                 console.error("Critical fault parsing transaction tracking registry elements:", err); 
+                const tbody = document.getElementById('payments-tbody');
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#dc2626; font-weight:600; padding:32px 0;">Failed to load historical ledger records.</td></tr>`;
+                }
             }
         }
 
@@ -213,20 +263,22 @@
                 return;
             }
 
-            // Extracts native filesystem naming strings safely without path leakage configurations
+            // Clean space strings safely out of filenames
             const realFileName = fileElement.name.replace(/\s+/g, '_');
             const outputPayloadName = `receipt_${order_id}_${Date.now()}_${realFileName}`;
 
-            const payload = { 
-                reference_number: ref, 
-                proof_image_name: outputPayloadName 
-            };
+            // Instantiating a multipart FormData constructor so actual file blocks ship to the server environment
+            const formData = new FormData();
+            formData.append('reference_number', ref);
+            formData.append('proof_image_name', outputPayloadName);
+            formData.append('receipt_file', fileElement); // Binds the binary raw image file
 
             try {
+                // NOTE: Content-Type headers are removed here explicitly. 
+                // Leaving it out allows the browser to automatically create correct multipart boundaries.
                 const res = await fetch(`/api/orders/${order_id}/payment`, { 
                     method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify(payload) 
+                    body: formData 
                 });
                 
                 if (res.ok) { 
@@ -248,6 +300,22 @@
         }
 
         /**
+         * Syncs sidebar item counter badge cleanly with current localStorage state arrays
+         */
+        function syncSidebarCartCount() {
+            try {
+                const localCart = JSON.parse(localStorage.getItem('userCart')) || [];
+                const totalItems = localCart.reduce((acc, item) => acc + (parseInt(item.quantity) || 0), 0);
+                const counterBadge = document.getElementById('sidebar-cart-counter');
+                if (counterBadge) {
+                    counterBadge.textContent = totalItems;
+                }
+            } catch (e) {
+                console.error("Sidebar runtime error reading structural state parameters:", e);
+            }
+        }
+
+        /**
          * Terminates the existing active session
          */
         async function processLogout(event) {
@@ -264,7 +332,7 @@
                 }
             } catch (error) {
                 console.error("Logout execution network lifecycle fault:", error);
-                window.location.href = '/login.html'; // Safe fallback context line
+                window.location.href = '/login.html'; 
             }
         }
 

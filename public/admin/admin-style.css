@@ -33,12 +33,14 @@ body {
     flex-direction: column;
     position: fixed;
     height: 100vh;
+    z-index: 100;
 }
 
 .brand-section {
     padding: 24px;
     text-align: center;
     border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0; /* Prevents brand header compression */
 }
 
 .brand-logo {
@@ -56,10 +58,13 @@ body {
     font-size: 1.2rem;
 }
 
+/* Scrollable Menu Wrapper Matrix */
 .sidebar-menu {
     list-style: none;
-    padding: 20px 0;
+    padding: 10px 0;
     flex-grow: 1;
+    overflow-y: auto; /* Handles high density link volumes safely within the viewport */
+    scrollbar-width: thin; /* Clean layout support for modern styling layers */
 }
 
 .sidebar-menu li a {
@@ -83,8 +88,12 @@ body {
     width: 20px;
 }
 
+/* Sticky Action Footers */
 .logout-btn {
     border-top: 1px solid var(--border-color);
+    background-color: var(--sidebar-bg);
+    margin-top: auto; /* Pushes element safely to container base */
+    flex-shrink: 0;   /* Protects node from flexbox squishing */
 }
 
 .logout-btn a {

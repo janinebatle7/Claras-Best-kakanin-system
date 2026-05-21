@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clara's Best - Cancellation Requests</title>
+    <link rel="stylesheet" href="admin-style.css">
+    <style>
+        /* Specific action styling enhancements for the cancellation grid matrix */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .badge.pending {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        .badge.approved {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+        .badge.rejected {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .action-control-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background var(--transition-fast, 0.2s);
+        }
+
+        .btn-approve {
+            background-color: #10b981;
+            color: white;
+        }
+        .btn-approve:hover {
+            background-color: #059669;
+        }
+
+        .btn-deny {
+            background-color: #ef4444;
+            color: white;
+        }
+        .btn-deny:hover {
+            background-color: #dc2626;
+        }
+        
+        .reason-text {
+            max-width: 300px;
+            word-wrap: break-word;
+            color: #4b5563;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="brand-section">
+            <div class="brand-logo"></div>
+            <div class="brand-name">Clara's Best</div>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="admin.html">Dashboard</a></li>
+            <li><a href="users.html">Users</a></li>
+            <li><a href="products.html">Products</a></li>
+            <li><a href="orders.html">Orders</a></li>
+            <li><a href="reservations.html">Reservations</a></li>
+            <li class="active"><a href="cancellation.html">Cancellation</a></li>
+            <li><a href="inventory.html">Inventory</a></li>
+            <li><a href="payments.html">Payments</a></li>
+            <li><a href="reports.html">Reports</a></li>
+            <li><a href="settings.html">Settings</a></li>
+            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)">Logout</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="header-container">
+            <div class="page-title">
+                <h1>Cancellation Management</h1>
+                <p style="color: var(--text-light)">Review and authorize system order drop requests</p>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h2 style="color: var(--primary-color); margin-bottom: 15px;">Active Customer Requests</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Order ID</th>
+                        <th>User ID</th>
+                        <th>Cancellation Reason Statement</th>
+                        <th>Current Status</th>
+                        <th style="text-align: center;">Administrative Interventions</th>
+                    </tr>
+                </thead>
+                <tbody id="cancellation-table-body">
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 15px; color: #64748b;">
+                            Synchronizing active cancellation registries...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        // 1. Queries and updates interface grid using targeted cancellation_requests api mapping
+        async function loadCancellationRequests() {
+            try {
+                const response = await fetch('/api/cancellation-requests');
+                if (!response.ok) throw new Error("Failed to authenticate system data stream requests.");
+
+                const requests = await response.json();
+                const tableBody = document.getElementById('cancellation-table-body');
+
+                if (!requests || requests.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #64748b;">No pending cancellation or dropped order items located in database records.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = requests.map(req => {
+                    const requestId = req.id;
+                    const orderId = req.order_id;
+                    const userId = req.user_id;
+                    const displayReason = escapeHtml(req.reason || "Logistics Conflicts / Customer Change of Mind");
+                    const dbStatus = req.status; // 'Pending', 'Approved', or 'Rejected'
+                    
+                    let badgeClass = 'pending';
+                    let labelText = 'Pending Review';
+                    let interactionControls = '';
+
+                    // Maps the table status definitions cleanly to corresponding visual states
+                    if (dbStatus === 'Approved') {
+                        badgeClass = 'approved';
+                        labelText = 'Approved & Refunded';
+                        interactionControls = `<span style="color: #10b981; font-weight: bold; font-size: 0.9rem;">Closed Transaction</span>`;
+                    } else if (dbStatus === 'Rejected') {
+                        badgeClass = 'rejected';
+                        labelText = 'Dropped / Denied';
+                        interactionControls = `<span style="color: #ef4444; font-weight: bold; font-size: 0.9rem;">Order Restored</span>`;
+                    } else {
+                        badgeClass = 'pending';
+                        labelText = 'Pending Review';
+                        interactionControls = `
+                            <div class="action-control-group">
+                                <button class="btn-action btn-approve" onclick="evaluateRequest(${requestId}, 'approve')">Approve Drop</button>
+                                <button class="btn-action btn-deny" onclick="evaluateRequest(${requestId}, 'deny')">Deny / Restore</button>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <tr>
+                            <td><strong>#REQ-${requestId}</strong></td>
+                            <td><span class="badge position-static" style="background-color: #f1f5f9; color: #334155;">#${orderId}</span></td>
+                            <td>User ID: ${userId}</td>
+                            <td><div class="reason-text">${displayReason}</div></td>
+                            <td><span class="badge ${badgeClass}">${labelText}</span></td>
+                            <td align="center">${interactionControls}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error("Cancellation grid synchronization error:", error);
+                document.getElementById('cancellation-table-body').innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 15px; color: #dc2626; font-weight: bold;">
+                            Failed to synchronize data metrics with live backend engines.
+                        </td>
+                    </tr>`;
+            }
+        }
+
+        // 2. Modifies relational status fields directly inside structural cancellation logs
+        async function evaluateRequest(requestId, actionType) {
+            const confirmationText = actionType === 'approve' 
+                ? "Are you sure you want to approve this request? This flags payment fields as Refunded."
+                : "Are you sure you want to deny this request and restore the order path?";
+                
+            if (!confirm(confirmationText)) return;
+
+            // Target parameter matches the exact ENUM validation values expected by backend schemas
+            const finalStatusValue = actionType === 'approve' ? 'Approved' : 'Rejected';
+
+            try {
+                const response = await fetch(`/api/cancellation-requests/${requestId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        status: finalStatusValue
+                    })
+                });
+
+                if (!response.ok) throw new Error("Server rejected context tracking state modifications.");
+
+                alert("Database state modification transaction saved successfully.");
+                loadCancellationRequests(); // Refresh layout matrices safely
+            } catch (error) {
+                console.error("Failed to commit tracking structural modifications:", error);
+                alert("Processing failure: Unable to modify core logging schema arrays safely.");
+            }
+        }
+
+        // 3. Clears framework contextual sessions completely down to security entry gates
+        async function processLogout(event) {
+            event.preventDefault();
+            if (!confirm("Are you sure you want to end your current session and sign out?")) return;
+
+            try {
+                const check = await fetch('/api/logout');
+                if (check.ok) {
+                    alert("Logged out successfully.");
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error("Logout validation network runtime interruption:", error);
+            }
+        }
+
+        // Escape helper safeguarding against dynamic injection attempts inside text fields
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Attach initialization handles seamlessly on execution loop targets
+        window.onload = function() {
+            loadCancellationRequests();
+        };
+    </script>
+</body>
+</html>

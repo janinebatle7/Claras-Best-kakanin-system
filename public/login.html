@@ -582,7 +582,7 @@
             const data = await res.json();
             if (res.ok) {
                 showToast('Login successful! Redirecting structural panel...');
-                setTimeout(() => window.location.href = data.role === 'Admin' ? '/admin/admin.html' : data.role === 'Staff' ? '/staff/staff.html' : '/customer/customer.html', 1000);
+                setTimeout(() => window.location.href = data.role === 'Admin' ? '/admin/admin.html' : data.role === 'Staff' ? '/staff/staff.html' : '/customer/dashboard.html', 1000);
             } else { 
                 showToast(data.error || 'Invalid credentials verified against instance', false); 
                 toggleButtonLoading('login-btn', false, 'Sign In');

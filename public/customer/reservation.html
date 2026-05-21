@@ -4,59 +4,146 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clara's Best - Reservations</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #78350f; --primary-light: #b45309; --primary-accent: #fef3c7; --bg-main: #fafaf9; --sidebar-bg: #ffffff; --border: #e7e5e4; --radius-lg: 16px; --radius-sm: 8px; }
+        :root { 
+            --primary: #78350f; 
+            --primary-light: #b45309; 
+            --primary-accent: #fef3c7; 
+            --bg-main: #fafaf9; 
+            --sidebar-bg: #ffffff; 
+            --text-dark: #1c1917;
+            --text-muted: #78716c;
+            --border: #e7e5e4; 
+            --radius-lg: 16px; 
+            --radius-md: 12px;
+            --radius-sm: 8px; 
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); display: flex; min-height: 100vh; color: var(--text-dark); }
         
-        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 32px 20px; position: fixed; height: 100vh; }
-        .sidebar-brand { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 40px; padding-left: 12px; border-left: 4px solid var(--primary-light); }
-        .sidebar-menu { display: flex; flex-direction: column; gap: 8px; list-style: none; }
-        .menu-item { display: flex; align-items: center; padding: 14px 16px; color: #78716c; text-decoration: none; font-weight: 600; font-size: 14px; border-radius: var(--radius-sm); }
-        .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); }
+        /* Sidebar Menu Layout Frame */
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 20px; position: fixed; height: 100vh; left: 0; top: 0; z-index: 100; }
         
-        .main-content { flex-grow: 1; margin-left: 280px; padding: 48px; }
-        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-        .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; min-width: 600px; }
-        .data-table th, .data-table td { padding: 20px; border-bottom: 1px solid var(--border); }
-        .data-table th { background: #faf9f6; color: var(--primary); font-weight: 700; }
+        .brand-container { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 24px; padding-left: 12px; }
+        .brand-logo-text { font-size: 18px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .brand-subtext { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: -2px; }
+
+        .sidebar-menu { display: flex; flex-direction: column; gap: 4px; list-style: none; flex-grow: 1; }
+        .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 13px; border-radius: var(--radius-sm); transition: var(--transition); }
+        .menu-item:hover, .menu-item.active { color: var(--primary); background-color: var(--primary-accent); font-weight: 700; }
+        .menu-link-group { display: flex; align-items: center; gap: 4px; width: 100%; justify-content: space-between; }
         
-        .badge { display: inline-flex; padding: 4px 12px; font-size: 11px; font-weight: 800; border-radius: 20px; text-transform: uppercase; }
-        .badge-approved { background: #dcfce7; color: #16a34a; }
-        .badge-pending { background: #fef9c3; color: #ca8a04; }
+        /* Dynamic Cart Badge Counter Pill */
+        .cart-badge-count { background: #e7e5e4; color: var(--text-dark); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; display: inline-block; transition: var(--transition); }
+        .menu-item:hover .cart-badge-count, .menu-item.active .cart-badge-count { background: var(--primary-light); color: white; }
+
+        .menu-item.logout-btn { margin-top: auto; color: #dc2626; }
+        .menu-item.logout-btn:hover { background-color: #fef2f2; }
+        
+        /* Content Workspace Viewport Window */
+        .main-content { flex-grow: 1; margin-left: 280px; padding: 40px; max-width: 1200px; width: calc(100% - 280px); }
+        
+        /* Data Display Table Containers */
+        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); background: white; box-shadow: 0 4px 20px rgba(120, 53, 15, 0.01); opacity: 0; transform: translateY(10px); transition: var(--transition); }
+        .table-responsive.reveal { opacity: 1; transform: translateY(0); }
+        
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; min-width: 750px; }
+        .data-table th, .data-table td { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+        .data-table th { background: #faf9f6; color: var(--text-muted); font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border); }
+        .data-table td { color: var(--text-dark); }
+        
+        /* Status Tracking Contextual Badges */
+        .badge { display: inline-flex; padding: 4px 10px; font-size: 11px; font-weight: 800; border-radius: 30px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-approved { background: #f0fdf4; color: #16a34a; }   /* Completed / Paid States */
+        .badge-pending { background: #fffbeb; color: #b45309; }    /* Standard Processing States */
+        
+        /* Micro-animation transitions */
+        .reservation-row { opacity: 0; transform: translateY(6px); transition: var(--transition); }
+        .reservation-row.visible { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; height: auto; position: relative; padding: 16px; }
+            body { flex-direction: column; }
+            .main-content { margin-left: 0; padding: 24px; width: 100%; }
+        }
     </style>
 </head>
 <body>
     <nav class="sidebar">
-        <div class="sidebar-brand">Clara's Best</div>
+        <div class="brand-container">
+            <span class="brand-logo-text">Clara's Best</span>
+            <span class="brand-subtext">Kakanin Delicacies</span>
+        </div>
         <ul class="sidebar-menu">
-            <li><a href="customer.html" class="menu-item">Home</a></li>
+            <li><a href="dashboard.html" class="menu-item">Dashboard</a></li>
             <li><a href="products.html" class="menu-item">Products</a></li>
-            <li><a href="cart.html" class="menu-item">Cart</a></li>
+            <li>
+                <a href="cart.html" class="menu-item">
+                    <div class="menu-link-group">
+                        <span>Cart</span>
+                        <span class="cart-badge-count" id="sidebar-cart-counter">0</span>
+                    </div>
+                </a>
+            </li>
             <li><a href="orders.html" class="menu-item">My Orders</a></li>
             <li><a href="reservation.html" class="menu-item active">My Reservations</a></li>
-            <li><a href="cancellation.html" class="menu-item">Cancellations</a></li>
+            <li><a href="cancellation.html" class="menu-item">Cancellation Requests</a></li>
             <li><a href="payment.html" class="menu-item">Payments</a></li>
             <li><a href="profile.html" class="menu-item">Profile</a></li>
-            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)">Logout</a></li>
+            <li class="logout-btn"><a href="#logout" class="menu-item logout-btn" id="logout-trigger">Logout</a></li>
         </ul>
     </nav>
+    
     <main class="main-content">
-        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 32px;">Advanced Event Bookings</h2>
-        <div class="table-responsive">
+        <h2 style="font-size: 26px; font-weight: 800; margin-bottom: 8px; color: var(--text-dark);">Advanced Event Bookings</h2>
+        <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 32px;">Review your upcoming advanced reservation targets, scheduled pick-up slots, and downpayment records.</p>
+        
+        <div class="table-responsive" id="table-wrapper">
             <table class="data-table">
-                <thead><tr><th>Reserve ID</th><th>Target Schedule Time</th><th>Total Sum</th><th>Order Status</th><th>Payment Status</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Reserve ID</th>
+                        <th>Target Schedule Time</th>
+                        <th>Total Sum</th>
+                        <th>Order Status</th>
+                        <th>Payment Status</th>
+                    </tr>
+                </thead>
                 <tbody id="reservations-tbody">
-                    <tr><td colspan="5" style="text-align:center;">Loading your reservations...</td></tr>
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding: 40px 0; color: var(--text-muted); font-style: italic;">
+                            Loading your reservations...
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </main>
 
     <script>
+        /**
+         * Orchestrates workspace data loading routines when structural parsing cycles conclude
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            loadReservations();
+            syncSidebarCartCount();
+
+            const logoutBtn = document.getElementById('logout-trigger');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => processLogout(e));
+            }
+        });
+
+        /**
+         * Asynchronously fetches reservation configurations and updates table layouts dynamically
+         */
         async function loadReservations() {
             const tbody = document.getElementById('reservations-tbody');
+            const wrapper = document.getElementById('table-wrapper');
+            if (!tbody) return;
+
             try {
                 const res = await fetch('/api/orders');
                 if (!res.ok) throw new Error('Unauthorized or Server Error');
@@ -64,32 +151,73 @@
                 const data = await res.json();
                 tbody.innerHTML = '';
                 
+                if (wrapper) wrapper.classList.add('reveal');
+                
                 // Filter only Reservations
                 const reservations = data.filter(t => t.type === 'Reservation');
                 
                 if (reservations.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px 0;">No active catering reservations found.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px 0; color: var(--text-muted); font-style: italic;">No active catering reservations found.</td></tr>`;
                     return;
                 }
                 
-                reservations.forEach(t => {
-                    const sClass = t.order_status === 'Completed' ? 'badge-approved' : 'badge-pending';
-                    const pClass = t.payment_status === 'Paid' ? 'badge-approved' : 'badge-pending';
+                const tableFragment = document.createDocumentFragment();
+                
+                reservations.forEach((t, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'reservation-row';
                     
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><strong>#${t.id}</strong></td>
-                            <td>${t.pickup_date_time ? new Date(t.pickup_date_time).toLocaleString() : 'N/A'}</td>
-                            <td>₱${parseFloat(t.total_price || 0).toFixed(2)}</td>
-                            <td><span class="badge ${sClass}">${t.order_status || 'Pending'}</span></td>
-                            <td><span class="badge ${pClass}">${t.payment_status || 'Unpaid'}</span></td>
-                        </tr>`;
+                    const safeId = escapeHtml(String(t.id));
+                    const scheduleTime = t.pickup_date_time ? new Date(t.pickup_date_time).toLocaleString() : 'N/A';
+                    const displayTotal = parseFloat(t.total_price || 0).toFixed(2);
+                    
+                    const rawOrderStatus = t.order_status || 'Pending';
+                    const rawPaymentStatus = t.payment_status || 'Unpaid';
+                    
+                    const sClass = rawOrderStatus === 'Completed' ? 'badge-approved' : 'badge-pending';
+                    const pClass = rawPaymentStatus === 'Paid' ? 'badge-approved' : 'badge-pending';
+                    
+                    tr.innerHTML = `
+                        <td><strong>#${safeId}</strong></td>
+                        <td style="color: var(--text-muted);">${scheduleTime}</td>
+                        <td style="font-weight: 700; color: var(--primary-light);">₱${displayTotal}</td>
+                        <td><span class="badge ${sClass}">${escapeHtml(rawOrderStatus)}</span></td>
+                        <td><span class="badge ${pClass}">${escapeHtml(rawPaymentStatus)}</span></td>
+                    `;
+                    
+                    tableFragment.appendChild(tr);
+                    
+                    // Staggered loading presentation animation
+                    setTimeout(() => tr.classList.add('visible'), idx * 35);
                 });
+                
+                tbody.appendChild(tableFragment);
             } catch(err) { 
                 console.error(err); 
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red; padding:20px;">Error loading reservations. Please ensure you are logged in.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#dc2626; font-weight:600; padding:32px 0;">Error loading reservations. Please ensure you are logged in.</td></tr>`;
+                if (wrapper) wrapper.classList.add('reveal');
             }
         }
+
+        /**
+         * Syncs sidebar item counter badge cleanly with current localStorage state arrays
+         */
+        function syncSidebarCartCount() {
+            try {
+                const localCart = JSON.parse(localStorage.getItem('userCart')) || [];
+                const totalItems = localCart.reduce((acc, item) => acc + (parseInt(item.quantity) || 0), 0);
+                const counterBadge = document.getElementById('sidebar-cart-counter');
+                if (counterBadge) {
+                    counterBadge.textContent = totalItems;
+                }
+            } catch (e) {
+                console.error("Sidebar runtime error reading structural state parameters:", e);
+            }
+        }
+
+        /**
+         * Requests operational route contexts to break system connection streams
+         */
         async function processLogout(event) {
             event.preventDefault();
             if (!confirm("Are you sure you want to end your current session and sign out?")) return;
@@ -98,14 +226,24 @@
                 const check = await fetch('/api/logout');
                 if (check.ok) {
                     alert("Logged out successfully.");
-                    // Updated from local template location string to direct absolute root endpoint route context
                     window.location.href = '/login.html';
                 }
             } catch (error) {
                 console.error("Logout runtime error network connection failure:", error);
             }
         }
-        window.addEventListener('DOMContentLoaded', loadReservations);
+
+        /**
+         * Safe markup compiler logic shielding visual fields from code string evaluation
+         */
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
     </script>
 </body>
 </html>

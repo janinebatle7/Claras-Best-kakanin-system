@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancellation Requests - Staff</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        /* Interactive Component Elements matching Clara's Best palette */
+        .refresh-btn { 
+            background: var(--accent); 
+            color: white; 
+            padding: 10px 18px; 
+            border: none; 
+            border-radius: var(--radius-md); 
+            cursor: pointer; 
+            margin-bottom: 20px; 
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all var(--transition-fast);
+            box-shadow: 0 2px 4px 0 rgba(92, 29, 36, 0.06);
+        }
+        .refresh-btn:hover { 
+            background: var(--accent-hover); 
+            box-shadow: 0 4px 12px rgba(92, 29, 36, 0.15);
+        }
+        .refresh-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Action Controls and Badge Elements */
+        .order-id-badge { 
+            padding: 4px 10px; 
+            border-radius: var(--radius-sm); 
+            background: #fbf9f4; 
+            border: 1px solid var(--border-color);
+            font-weight: 700;
+            color: var(--text-main);
+            font-family: monospace;
+        }
+        .status-badge {
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            display: inline-block;
+            font-size: 0.85rem;
+        }
+        .status-pending { 
+            color: #b91c1c; 
+            background: #fef2f2;
+        }
+        .status-approved {
+            color: #137333;
+            background: #e6f4ea;
+        }
+        .status-rejected {
+            color: #5f6368;
+            background: #f1f3f4;
+        }
+
+        .action-select {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background-color: #fff;
+            color: var(--text-main);
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: border-color var(--transition-fast);
+        }
+        .action-select:focus {
+            border-color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Clara's Best</h2>
+        <a href="staff.html" class="menu-item">Dashboard</a>
+        <a href="orders.html" class="menu-item">Orders</a>
+        <a href="reservations.html" class="menu-item">Reservations</a>
+        <a href="cancellation.html" class="menu-item active">Cancellation Requests</a>
+        <a href="walk.html" class="menu-item">Walk-in Orders</a>
+        <a href="inventory.html" class="menu-item">Inventory</a>
+        <a href="payment.html" class="menu-item">Payments</a>
+        <a href="#" onclick="logout(event)" class="menu-item" style="color:#b91c1c; margin-top: auto;">Logout</a>
+    </div>
+
+    <main class="content">
+        <div class="header-container">
+            <h1 style="font-family: 'Georgia', serif; color: var(--accent); font-size: 2rem; margin-bottom: 20px;">Order Cancellation Requests</h1>
+        </div>
+        
+        <button class="refresh-btn" onclick="loadCancellations()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            Refresh Requests
+        </button>
+        
+        <div class="table-container">
+            <table id="cancel-table">
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Order ID</th>
+                        <th>User ID</th>
+                        <th>Reason Given</th>
+                        <th>Current Status</th>
+                        <th>Administrative Action</th>
+                    </tr>
+                </thead>
+                <tbody id="cancel-body">
+                    <tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-muted);">Loading cancellation files...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        /**
+         * Binds operational view listeners securely when the DOM structure finishes parsing
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCancellations();
+        });
+
+        /**
+         * Queries cancellation arrays directly from your backend table endpoint
+         */
+        async function loadCancellations() {
+            try {
+                // Point this fetch URL string to match your backend endpoint for the cancellation requests table
+                const res = await fetch('/api/cancellation-requests');
+                if (!res.ok) throw new Error(`HTTP route anomaly: ${res.status}`);
+                
+                const requests = await res.json();
+                const cancelBody = document.getElementById('cancel-body');
+                
+                if (!requests || requests.length === 0) {
+                    cancelBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-muted);">No cancellation requests currently registered.</td></tr>';
+                    return;
+                }
+                
+                cancelBody.innerHTML = requests.map(req => {
+                    const requestId = req.id;
+                    const orderId = req.order_id;
+                    const userId = req.user_id;
+                    const cancellationReason = escapeHtml(req.reason || "No reason specified"); 
+                    const DBstatus = req.status; // Capturing 'Pending', 'Approved', or 'Rejected' from your MySQL ENUM
+                    
+                    // Maps database values to styling templates smoothly
+                    let statusClass = 'status-pending';
+                    let statusLabel = '⚠️ Pending Review';
+                    
+                    if (DBstatus === 'Approved') {
+                        statusClass = 'status-approved';
+                        statusLabel = '✅ Approved';
+                    } else if (DBstatus === 'Rejected') {
+                        statusClass = 'status-rejected';
+                        statusLabel = '🛑 Rejected';
+                    }
+
+                    return `
+                        <tr>
+                            <td><strong>#REQ-${requestId}</strong></td>
+                            <td><span class="order-id-badge">#${orderId}</span></td>
+                            <td>User ID: ${userId}</td>
+                            <td style="color: var(--text-muted); font-size: 0.9rem; max-width: 250px; word-wrap: break-word;">${cancellationReason}</td>
+                            <td>
+                                <span class="status-badge ${statusClass}">
+                                    ${statusLabel}
+                                </span>
+                            </td>
+                            <td>
+                                <select class="action-select" onchange="updateCancellationStatus(${requestId}, this.value)">
+                                    <option value="" disabled selected>Update State...</option>
+                                    <option value="Approved">Approve Cancellation</option>
+                                    <option value="Rejected">Deny & Restore Order</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error("Error loading cancellation dataset details:", err);
+                const cancelBody = document.getElementById('cancel-body');
+                if (cancelBody) {
+                    cancelBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #b91c1c;">Failed to sync with backend tracking channels.</td></tr>';
+                }
+            }
+        }
+
+        /**
+         * Dispatches processing data adjustments targeting your specific entry row IDs
+         * @param {Number} requestId - Target row key identity mapping
+         * @param {String} newStatus - Modified processing target value ('Approved' / 'Rejected')
+         */
+        async function updateCancellationStatus(requestId, newStatus) {
+            if (!newStatus) return;
+
+            try {
+                const res = await fetch(`/api/cancellation-requests/${requestId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                });
+
+                if (!res.ok) throw new Error(`State alteration anomaly: ${res.status}`);
+                
+                // Trigger a live table re-evaluation
+                loadCancellations();
+            } catch (err) {
+                console.error("Failed to commit administrative transaction update:", err);
+                alert("Database synchronization failure. Please confirm backend API configurations.");
+            }
+        }
+
+        /**
+         * Clears persistent user credentials and pushes viewport to security gateway interfaces
+         */
+        async function logout(e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            try {
+                await fetch('/api/logout');
+                window.location.href = '/login.html';
+            } catch (err) {
+                console.error("Logout dispatch failed:", err);
+                window.location.href = '/login.html';
+            }
+        }
+
+        /**
+         * Escape text injection sequences cleanly to ensure parsing protection
+         */
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>

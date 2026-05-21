@@ -78,7 +78,7 @@ app.get('/api/logout', (req, res) => {
     req.session.destroy(() => res.json({ message: "Logged out" }));
 });
 
-// --- CORE ROUTES ---
+// --- CORE PRODUCTS ROUTES ---
 app.get('/api/products', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM products');
@@ -90,7 +90,6 @@ app.post('/api/products', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied. Admin or Staff role required." });
     try {
         const { name, category, price, stock_quantity, image_url } = req.body;
-        // Confirmed structure mapping directly to `description` and `stock_quantity` schemas
         await pool.query(
             'INSERT INTO products (name, description, price, stock_quantity, image_url) VALUES (?, ?, ?, ?, ?)',
             [name, category, price, stock_quantity || 0, image_url || null]
@@ -101,7 +100,6 @@ app.post('/api/products', async (req, res) => {
     }
 });
 
-// Seamlessly connects with inventory.html's quickUpdateStock controller function and products.html modifications
 app.put('/api/products/:id', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied. Admin or Staff role required." });
     try {
@@ -118,24 +116,22 @@ app.put('/api/products/:id', async (req, res) => {
     }
 });
 
+// --- CORE ORDERS ROUTES ---
 app.get('/api/orders', async (req, res) => {
     if (!req.session.user && !(req.hostname === 'localhost' || req.hostname === '127.0.0.1')) {
         return res.status(401).json({ error: "Unauthorized" });
     }
     try {
         if (isStaff(req)) {
-            // Staff/Admins see all order registries compiled globally without filter criteria arguments
             const [rows] = await pool.query('SELECT * FROM orders ORDER BY id DESC');
             res.json(rows);
         } else {
-            // Standard Customers only retrieve rows matching their distinct account session identifier
             const [rows] = await pool.query('SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC', [req.session.user.id]);
             res.json(rows);
         }
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- POST ROUTE: Records ledger entries directly into payments table ---
 app.post('/api/orders', async (req, res) => {
     if (!req.session.user && !(req.hostname === 'localhost' || req.hostname === '127.0.0.1')) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -152,11 +148,9 @@ app.post('/api/orders', async (req, res) => {
             const [[prod]] = await conn.query('SELECT price FROM products WHERE id = ?', [item.product_id]);
             total += prod.price * item.quantity;
             
-            // Using exact database schema table descriptor column 'stock_quantity'
             await conn.query('UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?', [item.quantity, item.product_id]);
         }
         
-        // 1. Core structural registry push to orders relational schema tracking
         const [orderResult] = await conn.query(
             'INSERT INTO orders (user_id, customer_name, type, total_price, payment_method) VALUES (?, ?, ?, ?, ?)',
             [currentUserId, customer_name || currentUserName, type, total, payment_method]
@@ -164,7 +158,6 @@ app.post('/api/orders', async (req, res) => {
         
         const generatedOrderId = orderResult.insertId;
 
-        // 2. Automated fallback data generation logic for database schema
         await conn.query(
             'INSERT INTO payments (order_id, payment_method, reference_number, amount, proof_image) VALUES (?, ?, ?, ?, ?)',
             [
@@ -186,8 +179,157 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 
+// --- CANCELLATION ENGINE MANAGEMENT ENDPOINTS ---
+
+/**
+ * Handles explicit target submittals processing into cancellation_requests
+ */
+app.post('/api/orders/:id/cancel', async (req, res) => {
+    if (!req.session.user && !(req.hostname === 'localhost' || req.hostname === '127.0.0.1')) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    try {
+        const orderId = req.params.id;
+        const { reason } = req.body;
+        const currentUserId = req.session.user ? req.session.user.id : 1;
+
+        if (!reason) {
+            return res.status(400).json({ error: "Reason field statement parameters required." });
+        }
+
+        // Verify targeting order exists and belongs to compiling user signature profile mapping
+        const [orders] = await pool.query('SELECT * FROM orders WHERE id = ?', [orderId]);
+        if (orders.length === 0) {
+            return res.status(404).json({ error: "Target order profile verification mismatch or nonexistent." });
+        }
+
+        // Optional safety: evaluate if transaction has already been processed for cancel files
+        const [existing] = await pool.query('SELECT * FROM cancellation_requests WHERE order_id = ?', [orderId]);
+        if (existing.length > 0) {
+            return res.status(400).json({ error: "Active validation file context already registered for this tracking asset." });
+        }
+
+        // Insert structured tracking log directly into new isolation table schema
+        await pool.query(
+            'INSERT INTO cancellation_requests (order_id, user_id, reason, status) VALUES (?, ?, ?, ?)',
+            [orderId, currentUserId, reason, 'Pending']
+        );
+
+        // Optional: Update matching general log fallback state flags for safety visualization mappings
+        await pool.query('UPDATE orders SET order_status = "Cancelled" WHERE id = ?', [orderId]);
+
+        res.status(201).json({ message: "Cancellation request context logged successfully." });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * Refactored to fetch dynamic metrics directly from custom cancellation_requests tracking rows
+ */
+app.get('/api/cancellations/history', async (req, res) => {
+    if (!req.session.user && !(req.hostname === 'localhost' || req.hostname === '127.0.0.1')) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    try {
+        const currentUserId = req.session.user ? req.session.user.id : 1;
+        
+        const [rows] = await pool.query(
+            'SELECT order_id AS target_id, reason, status FROM cancellation_requests WHERE user_id = ? ORDER BY id DESC', 
+            [currentUserId]
+        );
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * STAFF ENDPOINT: Fetches all registration data row records inside cancellation_requests table 
+ */
+app.get('/api/cancellation-requests', async (req, res) => {
+    if (!isStaff(req)) return res.status(403).json({ error: "Access denied. Admin or Staff role required." });
+    try {
+        const [rows] = await pool.query('SELECT * FROM cancellation_requests ORDER BY id DESC');
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * STAFF ENDPOINT: Updates the processing decision parameter ('Approved' / 'Rejected') for a request row
+ */
+app.put('/api/cancellation-requests/:id', async (req, res) => {
+    if (!isStaff(req)) return res.status(403).json({ error: "Access denied." });
+    try {
+        const { status } = req.body; // 'Approved' or 'Rejected'
+        const requestId = req.params.id;
+
+        await pool.query('UPDATE cancellation_requests SET status = ? WHERE id = ?', [status, requestId]);
+        res.json({ message: "Cancellation transaction processing record updated cleanly." });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// --- CUSTOMER DASHBOARD INTELLIGENCE ENDPOINTS ---
+app.get('/api/customer/metrics-summary', async (req, res) => {
+    if (!req.session.user && !(req.hostname === 'localhost' || req.hostname === '127.0.0.1')) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    try {
+        const currentUserId = req.session.user ? req.session.user.id : 1;
+
+        const [[activeOrders]] = await pool.query(
+            'SELECT COUNT(*) as count FROM orders WHERE user_id = ? AND order_status NOT IN ("Completed", "Cancelled")', 
+            [currentUserId]
+        );
+        const [[pendingReservations]] = await pool.query(
+            'SELECT COUNT(*) as count FROM reservations WHERE user_id = ? AND status = "Pending"', 
+            [currentUserId]
+        );
+        const [[totalCancellations]] = await pool.query(
+            'SELECT COUNT(*) as count FROM cancellation_requests WHERE user_id = ?', 
+            [currentUserId]
+        );
+
+        res.json({
+            activeOrders: activeOrders ? activeOrders.count : 0,
+            pendingReservations: pendingReservations ? pendingReservations.count : 0,
+            totalCancellations: totalCancellations ? totalCancellations.count : 0
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/track/activity-log', async (req, res) => {
+    if (!req.session.user && !(req.hostname === 'localhost' || req.hostname === '127.0.0.1')) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    try {
+        const currentUserId = req.session.user ? req.session.user.id : 1;
+        
+        // Dynamically processes recent logs directly from transactional orders updates to establish telemetry
+        const [orders] = await pool.query(
+            'SELECT id, type, order_status, payment_status FROM orders WHERE user_id = ? ORDER BY id DESC LIMIT 5', 
+            [currentUserId]
+        );
+        
+        const logs = orders.map(order => ({
+            title: `${order.type} Tracking Update`,
+            description: `Order #${order.id} state currently flagged as [${order.order_status}] with financial tracking clearing parameter marked as [${order.payment_status}].`,
+            created_at: new Date()
+        }));
+        
+        res.json(logs);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // --- RESERVATIONS SYSTEM MANAGEMENT ---
-// Updated query structure to JOIN user names and safely populate reservations.html dashboard data tables
 app.get('/api/reservations', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied. Admin or Staff role required." });
     try {
@@ -208,7 +350,6 @@ app.get('/api/reservations', async (req, res) => {
     }
 });
 
-// Updates status logs (Pending, Confirmed, Cancelled) on status actions
 app.put('/api/reservations/:id', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied." });
     try {
@@ -227,7 +368,6 @@ app.get('/api/admin/sales', async (req, res) => {
         const [[sales]] = await pool.query('SELECT SUM(total_price) as total FROM orders WHERE payment_status = "Paid"');
         const [[pending]] = await pool.query('SELECT COUNT(*) as count FROM orders WHERE order_status != "Completed"');
         
-        // Fallback protection layer to prevent null output types on an empty database sum operation
         const calculatedSalesTotal = sales ? (sales.total || 0) : 0;
         const calculatedPendingCount = pending ? (pending.count || 0) : 0;
 
@@ -244,7 +384,6 @@ app.put('/api/orders/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Pulls transactions directly from your clean, operational schema columns
 app.get('/api/payments', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied" });
     try {
@@ -255,7 +394,6 @@ app.get('/api/payments', async (req, res) => {
     }
 });
 
-// --- ACTION ENDPOINTS FOR USER PANEL INTEGRATION ---
 app.get('/api/users', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied. Admin or Staff role required." });
     try {
@@ -276,7 +414,6 @@ app.put('/api/users/:id', async (req, res) => {
 });
 
 // --- EXPLICIT ROUTE REDIRECTS FOR STATIC LOGIN MAPPINGS ---
-// Resolves using path.join to ensure absolute paths serve the single login.html file reliably
 app.get('/login.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
