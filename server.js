@@ -38,9 +38,7 @@ app.use(session({
 // ==========================================
 // AUTHORIZATION HELPER
 // ==========================================
-// Enhanced with local safety fallback for frictionless testing
 const isStaff = (req) => {
-    // If a session cookie drops on localhost during a server restart, auto-allow to prevent product/user blockages
     if (!req.session || !req.session.user) {
         return req.hostname === 'localhost' || req.hostname === '127.0.0.1';
     }
@@ -50,11 +48,40 @@ const isStaff = (req) => {
 // ==========================================
 // --- AUTH ROUTES ---
 // ==========================================
+app.get('/api/profile', async (req, res) => {
+    if (!req.session || !req.session.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    try {
+        const [rows] = await pool.query(
+            'SELECT name, email, phone, address, role FROM users WHERE id = ?', 
+            [req.session.user.id]
+        );
+        if (rows.length > 0) {
+            res.json(rows[0]);
+        } else {
+            res.status(404).json({ error: "User not found" });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Update Profile Route
+app.put('/api/profile', async (req, res) => {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: "Unauthorized" });
+    try {
+        const { name, phone, address } = req.body;
+        await pool.query('UPDATE users SET name = ?, phone = ?, address = ? WHERE id = ?', 
+        [name, phone, address, req.session.user.id]);
+        res.json({ message: "Profile updated successfully" });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/api/session', (req, res) => {
     if (req.session && req.session.user) {
         res.json({ loggedIn: true, user: req.session.user });
     } else {
-        // Fallback session mimic for frontend templates running under local verification
         if (req.hostname === 'localhost' || req.hostname === '127.0.0.1') {
             return res.json({ loggedIn: true, user: { id: 1, name: "Admin Developer", role: "Admin" } });
         }
@@ -205,10 +232,6 @@ app.post('/api/orders', async (req, res) => {
 // ==========================================
 // --- CANCELLATION ENGINE MANAGEMENT ---
 // ==========================================
-
-/**
- * Handles explicit target submittals processing into cancellation_requests
- */
 app.post('/api/orders/:id/cancel', async (req, res) => {
     if ((!req.session || !req.session.user) && !(req.hostname === 'localhost' || req.hostname === '127.0.0.1')) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -222,25 +245,21 @@ app.post('/api/orders/:id/cancel', async (req, res) => {
             return res.status(400).json({ error: "Reason field statement parameters required." });
         }
 
-        // Verify targeting order exists and belongs to compiling user signature profile mapping
         const [orders] = await pool.query('SELECT * FROM orders WHERE id = ?', [orderId]);
         if (orders.length === 0) {
             return res.status(404).json({ error: "Target order profile verification mismatch or nonexistent." });
         }
 
-        // Evaluate if transaction has already been processed for cancel files
         const [existing] = await pool.query('SELECT * FROM cancellation_requests WHERE order_id = ?', [orderId]);
         if (existing.length > 0) {
             return res.status(400).json({ error: "Active validation file context already registered for this tracking asset." });
         }
 
-        // Insert structured tracking log directly into new isolation table schema
         await pool.query(
             'INSERT INTO cancellation_requests (order_id, user_id, reason, status) VALUES (?, ?, ?, ?)',
             [orderId, currentUserId, reason, 'Pending']
         );
 
-        // Update matching general log fallback state flags for safety visualization mappings
         await pool.query("UPDATE orders SET order_status = 'Cancelled' WHERE id = ?", [orderId]);
 
         res.status(201).json({ message: "Cancellation request context logged successfully." });
@@ -249,9 +268,6 @@ app.post('/api/orders/:id/cancel', async (req, res) => {
     }
 });
 
-/**
- * Refactored to fetch dynamic metrics directly from custom cancellation_requests tracking rows
- */
 app.get('/api/cancellations/history', async (req, res) => {
     if ((!req.session || !req.session.user) && !(req.hostname === 'localhost' || req.hostname === '127.0.0.1')) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -269,9 +285,6 @@ app.get('/api/cancellations/history', async (req, res) => {
     }
 });
 
-/**
- * STAFF ENDPOINT: Fetches all registration data row records inside cancellation_requests table 
- */
 app.get('/api/cancellation-requests', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied. Admin or Staff role required." });
     try {
@@ -282,13 +295,10 @@ app.get('/api/cancellation-requests', async (req, res) => {
     }
 });
 
-/**
- * STAFF ENDPOINT: Updates the processing decision parameter ('Approved' / 'Rejected') for a request row
- */
 app.put('/api/cancellation-requests/:id', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied." });
     try {
-        const { status } = req.body; // 'Approved' or 'Rejected'
+        const { status } = req.body;
         const requestId = req.params.id;
 
         await pool.query('UPDATE cancellation_requests SET status = ? WHERE id = ?', [status, requestId]);
@@ -338,7 +348,6 @@ app.get('/api/track/activity-log', async (req, res) => {
     try {
         const currentUserId = req.session.user ? req.session.user.id : 1;
         
-        // Dynamically processes recent logs directly from transactional orders updates to establish telemetry
         const [orders] = await pool.query(
             'SELECT id, type, order_status, payment_status FROM orders WHERE user_id = ? ORDER BY id DESC LIMIT 5', 
             [currentUserId]
@@ -399,7 +408,6 @@ app.get('/api/admin/sales', async (req, res) => {
     let calculatedSalesTotal = 0;
     let calculatedPendingCount = 0;
 
-    // Isolated tracking blocks so a temporary structural warning doesn't freeze components
     try {
         const [[sales]] = await pool.query("SELECT COALESCE(SUM(total_price), 0) as total FROM orders WHERE payment_status = 'Paid'");
         calculatedSalesTotal = sales ? (sales.total || 0) : 0;
@@ -458,9 +466,6 @@ app.put('/api/users/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ==========================================
-// --- EXPLICIT ROUTE REDIRECTS FOR STATIC LOGIN MAPPINGS ---
-// ==========================================
 app.get('/login.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
@@ -469,8 +474,5 @@ app.get('/admin/login.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// ==========================================
-// SERVER SPIN UP
-// ==========================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
