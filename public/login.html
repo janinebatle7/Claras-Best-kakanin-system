@@ -123,7 +123,7 @@
             padding-top: 20px;
         }
 
-        /* Form Terminal Terminal Control Side Block */
+        /* Form Terminal Control Side Block */
         .auth-terminal-side {
             display: flex;
             align-items: center;
@@ -215,7 +215,7 @@
             align-items: center;
         }
 
-        input { 
+        input, textarea { 
             width: 100%; 
             padding: 13px 16px; 
             border: 1.5px solid #E4DCCE; 
@@ -229,7 +229,12 @@
             transition: all var(--transition-smooth);
         }
 
-        input:focus { 
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        input:focus, textarea:focus { 
             border-color: var(--primary); 
             box-shadow: 0 0 0 4px rgba(74, 21, 33, 0.08); 
         }
@@ -374,8 +379,8 @@
         </a>
         
         <div class="side-headline-center">
-            <h2>Taste the Tradition,<br>Feel the <span>Heritage</span>.</h2>
-            <p>Access your customer profile to manage active orders, reserve delicacies for special events, and check localized pickup schedules instantly.</p>
+            <h2>Authentic Filipino Kakanin,<br>Made with Heart and<span>Heritage</span>.</h2>
+            <p>Order your favorite Filipino delicacies with ease. From sweet classics to timeless favorites, Clara’s Best brings tradition closer to you.</p>
         </div>
         
         <div class="side-footer-meta">
@@ -387,7 +392,7 @@
         <div class="auth-container">
             <div class="brand-header">
                 <h1>Mabuhay!</h1>
-                <p>Welcome to Clara's Best Terminal</p>
+                <p>Welcome to Clara's Best</p>
             </div>
 
             <div class="tabs">
@@ -437,6 +442,13 @@
                         <input type="tel" id="signup-phone" required placeholder="0917XXXXXXX">
                     </div>
                     <div class="input-error-hint" id="error-signup-phone">Provide a structured 11-digit local mobile identifier number sequence</div>
+                </div>
+                <div class="form-group">
+                    <label for="signup-address">Delivery Address</label>
+                    <div class="input-wrapper">
+                        <textarea id="signup-address" required placeholder="House No., Street, Barangay, City/Municipality, Province"></textarea>
+                    </div>
+                    <div class="input-error-hint" id="error-signup-address">Please provide your complete delivery address documentation</div>
                 </div>
                 <div class="form-group">
                     <label for="signup-password">Password</label>
@@ -503,7 +515,7 @@
         loginForm.reset();
         signupForm.reset();
         document.querySelectorAll('.input-error-hint').forEach(hint => hint.style.display = 'none');
-        document.querySelectorAll('input').forEach(inp => inp.style.borderColor = '#E4DCCE');
+        document.querySelectorAll('input, textarea').forEach(inp => inp.style.borderColor = '#E4DCCE');
 
         if (type === 'login') {
             loginForm.classList.remove('hidden');
@@ -600,18 +612,20 @@
         const nameInput = document.getElementById('signup-name');
         const emailInput = document.getElementById('signup-email');
         const phoneInput = document.getElementById('signup-phone');
+        const addressInput = document.getElementById('signup-address');
         const passwordInput = document.getElementById('signup-password');
         
         const errName = document.getElementById('error-signup-name');
         const errEmail = document.getElementById('error-signup-email');
         const errPhone = document.getElementById('error-signup-phone');
+        const errAddress = document.getElementById('error-signup-address');
         const errPass = document.getElementById('error-signup-password');
         
         let isValid = true;
 
         // Reset tracking markers
         document.querySelectorAll('.input-error-hint').forEach(h => h.style.display = 'none');
-        document.querySelectorAll('#signup-form input').forEach(i => i.style.borderColor = '#E4DCCE');
+        document.querySelectorAll('#signup-form input, #signup-form textarea').forEach(i => i.style.borderColor = '#E4DCCE');
 
         if (nameInput.value.trim().length < 2) {
             errName.style.display = 'block';
@@ -626,6 +640,11 @@
         if (!/^\d{11}$/.test(phoneInput.value.trim())) {
             errPhone.style.display = 'block';
             phoneInput.style.borderColor = '#A92323';
+            isValid = false;
+        }
+        if (addressInput.value.trim().length < 5) {
+            errAddress.style.display = 'block';
+            addressInput.style.borderColor = '#A92323';
             isValid = false;
         }
         if (passwordInput.value.length < 6) {
@@ -646,6 +665,7 @@
                     name: nameInput.value, 
                     email: emailInput.value, 
                     phone: phoneInput.value, 
+                    address: addressInput.value,
                     password: passwordInput.value 
                 })
             });

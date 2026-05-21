@@ -66,12 +66,14 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 60px;
+            gap: 20px;
         }
 
         .brand-block {
             display: flex;
             align-items: center;
             gap: 12px;
+            flex-shrink: 0;
         }
 
         .brand-logo-placeholder {
@@ -104,7 +106,9 @@
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 32px;
+            justify-content: center;
+            gap: 40px;
+            flex-grow: 1;
         }
 
         .nav-links a {
@@ -113,6 +117,7 @@
             font-size: 0.95rem;
             font-weight: 500;
             transition: color var(--transition-smooth);
+            white-space: nowrap;
         }
 
         .nav-links a:hover, .nav-links a.active {
@@ -126,6 +131,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            flex-shrink: 0;
         }
 
         .btn-outline-auth {
@@ -234,6 +240,8 @@
             font-weight: 700;
             border-radius: var(--radius-sm);
             width: auto;
+            cursor: pointer;
+            transition: background-color var(--transition-smooth);
         }
 
         .btn-hero-order:hover {
@@ -249,6 +257,8 @@
             border-radius: var(--radius-sm);
             width: auto;
             box-shadow: none;
+            cursor: pointer;
+            transition: background-color var(--transition-smooth);
         }
 
         .btn-hero-reserve:hover {
@@ -508,6 +518,7 @@
             display: flex;
             align-items: center;
             gap: 16px;
+            flex-shrink: 0;
         }
         
         .nav-status-msg {
@@ -541,7 +552,7 @@
 
         @media (max-width: 768px) {
             .navbar { flex-direction: column; gap: 20px; text-align: center; margin-bottom: 40px; }
-            .nav-links { flex-wrap: wrap; justify-content: center; gap: 16px; }
+            .nav-links { flex-wrap: wrap; justify-content: center; gap: 24px; }
             .hero-text-side h2 { font-size: 2.8rem; }
             .features-ribbon { grid-template-columns: 1fr; }
             .hero-actions-row { flex-direction: column; width: 100%; }
@@ -565,8 +576,6 @@
             <div class="nav-links">
                 <a href="#" class="active">Home</a>
                 <a href="#">Products</a>
-                <a href="#">Order Now</a>
-                <a href="#">Reservations</a>
                 <a href="#">About Us</a>
                 <a href="#">Contact</a>
             </div>
