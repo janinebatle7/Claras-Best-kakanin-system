@@ -7,7 +7,9 @@ require('dotenv').config();
 
 const app = express();
 
-// Database configuration
+// ==========================================
+// DATABASE CONFIGURATION & POOL INITIALIZATION
+// ==========================================
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'mysql-38880adb-janine-batle10.e.aivencloud.com',
     user: process.env.DB_USER || 'avnadmin',
@@ -19,7 +21,9 @@ const pool = mysql.createPool({
     connectionLimit: 10
 });
 
-// Middleware
+// ==========================================
+// MIDDLEWARE SETUP
+// ==========================================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
@@ -31,7 +35,10 @@ app.use(session({
     cookie: { maxAge: 24 * 60 * 60 * 1000, httpOnly: true }
 }));
 
-// Authorization helper - Enhanced with local safety fallback for frictionless testing
+// ==========================================
+// AUTHORIZATION HELPER
+// ==========================================
+// Enhanced with local safety fallback for frictionless testing
 const isStaff = (req) => {
     // If a session cookie drops on localhost during a server restart, auto-allow to prevent product/user blockages
     if (!req.session || !req.session.user) {
@@ -40,7 +47,9 @@ const isStaff = (req) => {
     return req.session.user.role === 'Admin' || req.session.user.role === 'Staff';
 };
 
+// ==========================================
 // --- AUTH ROUTES ---
+// ==========================================
 app.get('/api/session', (req, res) => {
     if (req.session && req.session.user) {
         res.json({ loggedIn: true, user: req.session.user });
@@ -87,7 +96,9 @@ app.get('/api/logout', (req, res) => {
     }
 });
 
+// ==========================================
 // --- CORE PRODUCTS ROUTES ---
+// ==========================================
 app.get('/api/products', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM products');
@@ -125,7 +136,9 @@ app.put('/api/products/:id', async (req, res) => {
     }
 });
 
+// ==========================================
 // --- CORE ORDERS ROUTES ---
+// ==========================================
 app.get('/api/orders', async (req, res) => {
     if ((!req.session || !req.session.user) && !(req.hostname === 'localhost' || req.hostname === '127.0.0.1')) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -189,7 +202,9 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 
-// --- CANCELLATION ENGINE MANAGEMENT ENDPOINTS ---
+// ==========================================
+// --- CANCELLATION ENGINE MANAGEMENT ---
+// ==========================================
 
 /**
  * Handles explicit target submittals processing into cancellation_requests
@@ -283,7 +298,9 @@ app.put('/api/cancellation-requests/:id', async (req, res) => {
     }
 });
 
-// --- CUSTOMER DASHBOARD INTELLIGENCE ENDPOINTS ---
+// ==========================================
+// --- CUSTOMER DASHBOARD INTELLIGENCE ---
+// ==========================================
 app.get('/api/customer/metrics-summary', async (req, res) => {
     if ((!req.session || !req.session.user) && !(req.hostname === 'localhost' || req.hostname === '127.0.0.1')) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -339,7 +356,9 @@ app.get('/api/track/activity-log', async (req, res) => {
     }
 });
 
+// ==========================================
 // --- RESERVATIONS SYSTEM MANAGEMENT ---
+// ==========================================
 app.get('/api/reservations', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied. Admin or Staff role required." });
     try {
@@ -371,7 +390,9 @@ app.put('/api/reservations/:id', async (req, res) => {
     }
 });
 
+// ==========================================
 // --- ADMIN/STAFF MANAGEMENT ---
+// ==========================================
 app.get('/api/admin/sales', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Unauthorized" });
     
@@ -380,7 +401,6 @@ app.get('/api/admin/sales', async (req, res) => {
 
     // Isolated tracking blocks so a temporary structural warning doesn't freeze components
     try {
-        // FIXED: Using string values properly encapsulated in single quotes
         const [[sales]] = await pool.query("SELECT COALESCE(SUM(total_price), 0) as total FROM orders WHERE payment_status = 'Paid'");
         calculatedSalesTotal = sales ? (sales.total || 0) : 0;
     } catch (salesErr) {
@@ -388,7 +408,6 @@ app.get('/api/admin/sales', async (req, res) => {
     }
 
     try {
-        // FIXED: Using string values properly encapsulated in single quotes
         const [[pending]] = await pool.query("SELECT COUNT(*) as count FROM orders WHERE LOWER(order_status) = 'pending'");
         calculatedPendingCount = pending ? (pending.count || 0) : 0;
     } catch (pendingErr) {
@@ -423,7 +442,6 @@ app.get('/api/payments', async (req, res) => {
 app.get('/api/users', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied. Admin or Staff role required." });
     try {
-        // MODIFIED: Explicitly selected the address field here to sync with front-end changes
         const [rows] = await pool.query('SELECT id, name, email, address, role FROM users ORDER BY id DESC');
         res.json(rows);
     } catch (err) { 
@@ -440,7 +458,9 @@ app.put('/api/users/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ==========================================
 // --- EXPLICIT ROUTE REDIRECTS FOR STATIC LOGIN MAPPINGS ---
+// ==========================================
 app.get('/login.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
@@ -449,5 +469,8 @@ app.get('/admin/login.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
+// ==========================================
+// SERVER SPIN UP
+// ==========================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
