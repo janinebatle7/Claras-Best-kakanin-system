@@ -3,37 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Products - Admin</title>
-    <link rel="stylesheet" href="admin-style.css">
+    <title>Clara's Best - Product Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Small styling safety layer for dynamic layout rendering */
-        .product-thumbnail {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 6px;
-            background-color: #f3f4f6;
+        :root {
+            --primary-dark: #3d0c11;
+            --primary-mid: #5c1820;
+            --accent-gold: #cca43b;
+            --bg-light: #fdfaf6;
+            --bg-card: #ffffff;
+            --text-dark: #2d1518;
+            --text-muted: #7d6769;
+            --border-color: #f1eae2;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* --- SIDEBAR NAV MAPPINGS --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--primary-dark);
+            color: #ffffff;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .brand-logo {
+            width: 42px;
+            height: 42px;
+            background-color: var(--accent-gold);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
-            color: #9ca3af;
         }
+
+        .brand-logo::after {
+            content: "👑";
+            font-size: 20px;
+        }
+
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--bg-light);
+            letter-spacing: 0.5px;
+        }
+
+        .admin-panel-tag {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-gold);
+            margin-bottom: 16px;
+            font-weight: 600;
+            padding-left: 8px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #e2d4d5;
+            text-decoration: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-menu li a:hover, 
+        .sidebar-menu li.active a {
+            background-color: var(--primary-mid);
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .sidebar-menu li.active a i {
+            color: var(--accent-gold);
+        }
+
+        .sidebar-menu li.logout-btn {
+            margin-top: auto;
+            padding-top: 24px;
+        }
+
+        .sidebar-menu li.logout-btn a {
+            color: #fca5a5;
+        }
+
+        .sidebar-menu li.logout-btn a:hover {
+            background-color: #7f1d1d;
+            color: #ffffff;
+        }
+
+        .footer-branding {
+            margin-top: 40px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0.6;
+            line-height: 1.5;
+            padding: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* --- MAIN DASHBOARD CONTENT SCROLL SPACES --- */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            width: calc(100% - 260px);
+            padding: 40px;
+            overflow-x: hidden;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .page-title h1 {
+            font-size: 1.85rem;
+            color: var(--primary-dark);
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        /* --- STYLING ACTIONS & LAYOUT MODIFIERS --- */
+        .action-btn {
+            background-color: var(--primary-mid);
+            color: #ffffff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background-color 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
         .action-btn-danger {
             background-color: #dc2626;
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
+            padding: 8px 14px;
+            border-radius: 6px;
             cursor: pointer;
             margin-left: 5px;
-            font-size: 14px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background-color 0.2s ease;
         }
+
         .action-btn-danger:hover {
             background-color: #b91c1c;
         }
 
-        /* --- PRODUCT MODAL STYLING --- */
+        .product-thumbnail {
+            width: 52px;
+            height: 52px;
+            object-fit: cover;
+            border-radius: 8px;
+            background-color: #faf6f0;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: var(--text-muted);
+        }
+
+        /* --- CENTRAL TABLE CONTAINER --- */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        thead th {
+            padding: 14px 16px;
+            background-color: #faf6f0;
+            color: var(--primary-dark);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-dark);
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        tr:last-child td { 
+            border-bottom: none; 
+        }
+
+        /* --- PRODUCT MODAL STYLING OVERLAYS --- */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -41,93 +264,124 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(45, 21, 24, 0.4);
+            backdrop-filter: blur(4px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
         }
+
         .modal-box {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
+            background: var(--bg-card);
+            padding: 32px;
+            border-radius: 14px;
             width: 100%;
-            max-width: 450px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            border: 1px solid #e6ded9;
+            max-width: 460px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border-color);
         }
+
         .modal-box h2 {
-            margin-bottom: 20px;
-            color: var(--primary-color, #8B4513);
-            font-size: 22px;
+            margin-bottom: 24px;
+            color: var(--primary-dark);
+            font-size: 1.4rem;
+            font-weight: 700;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
         }
+
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
+
         .form-group label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-weight: 600;
-            color: #2d1e18;
-            font-size: 14px;
+            color: var(--text-dark);
+            font-size: 0.88rem;
         }
+
         .form-group input, .form-group select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #e6ded9;
-            border-radius: 6px;
-            font-size: 14px;
-            background: #faf7f5;
+            padding: 11px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: #fdfdfd;
+            color: var(--text-dark);
             box-sizing: border-box;
+            transition: all 0.2s ease;
         }
+
         .form-group input:focus, .form-group select:focus {
             outline: none;
-            border-color: var(--primary-color, #8B4513);
+            border-color: var(--accent-gold);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(204, 164, 59, 0.15);
         }
+
         .modal-actions {
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
-            margin-top: 24px;
+            gap: 12px;
+            margin-top: 28px;
         }
+
         .cancel-btn {
-            background: #e6ded9;
-            color: #4a3e3d;
+            background: #f1eae2;
+            color: #5c4e4d;
             border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
+            padding: 10px 18px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s ease;
         }
+
         .cancel-btn:hover {
-            background: #d8ceeb;
+            background: #e6ded5;
         }
     </style>
 </head>
 <body>
+
     <nav class="sidebar">
         <div class="brand-section">
             <div class="brand-logo"></div>
             <div class="brand-name">Clara's Best</div>
         </div>
+        <div class="admin-panel-tag">Admin Panel</div>
         <ul class="sidebar-menu">
-            <li><a href="admin.html">Dashboard</a></li>
-            <li><a href="users.html">Users</a></li>
-            <li class="active"><a href="products.html">Products</a></li>
-            <li><a href="orders.html">Orders</a></li>
-            <li><a href="reservations.html">Reservations</a></li>
-            <li><a href="cancellation.html">Cancellations</a></li>
-            <li><a href="inventory.html">Inventory</a></li>
-            <li><a href="payments.html">Payments</a></li>
-            <li><a href="reports.html">Reports</a></li>
-            <li><a href="settings.html">Settings</a></li>
-            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)">Logout</a></li>
+            <li><a href="admin.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="users.html"><i class="fa-solid fa-users"></i> Users</a></li>
+            <li class="active"><a href="products.html"><i class="fa-solid fa-cookie-bite"></i> Products</a></li>
+            <li><a href="orders.html"><i class="fa-solid fa-shopping-bag"></i> Orders</a></li>
+            <li><a href="reservations.html"><i class="fa-solid fa-calendar-check"></i> Reservations</a></li>
+            <li><a href="cancellation.html"><i class="fa-solid fa-ban"></i> Cancellation Requests</a></li>
+            <li><a href="inventory.html"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a></li>
+            <li><a href="payments.html"><i class="fa-solid fa-credit-card"></i> Payments</a></li>
+            <li><a href="reports.html"><i class="fa-solid fa-file-invoice-dollar"></i> Reports</a></li>
+            <li><a href="settings.html"><i class="fa-solid fa-sliders"></i> Settings</a></li>
+            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
         </ul>
+        <div class="footer-branding">
+            <strong>Clara's Best: Kakanin Delicacies</strong><br>
+            Poblacion, Hinunangan, Southern Leyte
+        </div>
     </nav>
+
     <main class="main-content">
         <div class="header-container">
-            <div class="page-title"><h1>Product Management</h1></div>
-            <button class="action-btn" onclick="openAddProductModal()">+ Add New Product</button>
+            <div class="page-title">
+                <h1>Product Management</h1>
+            </div>
+            <button class="action-btn" onclick="openAddProductModal()">
+                <i class="fa-solid fa-plus"></i> Add New Product
+            </button>
         </div>
+
         <div class="table-container">
             <table>
                 <thead>
@@ -141,8 +395,8 @@
                 </thead>
                 <tbody id="products-table-body">
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 20px; color: #64748b;">
-                            Synchronizing products repository catalogue...
+                        <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Synchronizing products repository catalogue...
                         </td>
                     </tr>
                 </tbody>
@@ -202,7 +456,7 @@
                 const tableBody = document.getElementById('products-table-body');
 
                 if (productsCache.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #64748b;">No products found in the catalog.</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">No products found in the catalog.</td></tr>`;
                     return;
                 }
 
@@ -217,10 +471,14 @@
                             <td>${imageElement}</td>
                             <td style="font-weight: 600;">${product.name}</td>
                             <td>${product.description || 'Kakanin'}</td>
-                            <td style="font-weight: bold; color: var(--primary-color, #8B4513);">₱${Number(product.price).toFixed(2)}</td>
+                            <td style="font-weight: bold; color: var(--primary-dark);">₱${Number(product.price).toFixed(2)}</td>
                             <td>
-                                <button class="action-btn" onclick="editProduct(${product.id})">Edit</button>
-                                <button class="action-btn-danger" onclick="deleteProduct(${product.id})">Delete</button>
+                                <button class="action-btn" style="padding: 8px 14px; font-size: 0.85rem;" onclick="editProduct(${product.id})">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </button>
+                                <button class="action-btn-danger" onclick="deleteProduct(${product.id})">
+                                    <i class="fa-solid fa-trash-can"></i> Delete
+                                </button>
                             </td>
                         </tr>
                     `;
@@ -231,13 +489,16 @@
                 document.getElementById('products-table-body').innerHTML = `
                     <tr>
                         <td colspan="5" style="text-align: center; padding: 20px; color: #dc2626; font-weight: bold;">
-                            Error running component records sync routine.
+                            <i class="fa-solid fa-triangle-exclamation"></i> Error running component records sync routine.
                         </td>
                     </tr>`;
             }
         }
 
         // 2. Modal Interface Toggle Controllers
+        ajax= null;
+        if (typeof ajax === 'undefined') { var ajax = null; } // Maintain syntax placeholder safely
+        
         function openAddProductModal() {
             document.getElementById('modalTitle').textContent = "Add New Product";
             document.getElementById('submitModalBtn').textContent = "Save Product";
@@ -338,7 +599,7 @@
         }
 
         // 5. Clear session references cleanly
-       async function processLogout(event) {
+        async function processLogout(event) {
             event.preventDefault();
             if (!confirm("Are you sure you want to end your current session and sign out?")) return;
 
@@ -346,13 +607,16 @@
                 const check = await fetch('/api/logout');
                 if (check.ok) {
                     alert("Logged out successfully.");
-                    // Updated from local template location string to direct absolute root endpoint route context
                     window.location.href = '/login.html';
+                } else {
+                    alert("Failed to close remote web session clean on server.");
                 }
             } catch (error) {
                 console.error("Logout runtime error network connection failure:", error);
+                alert("Network failure error. Could not verify state change with route handlers.");
             }
         }
+
         window.onload = fetchProductsList;
     </script>
 </body>

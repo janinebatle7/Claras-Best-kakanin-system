@@ -2,33 +2,309 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Inventory - Admin</title>
-    <link rel="stylesheet" href="admin-style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clara's Best - Inventory Control</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-dark: #3d0c11;
+            --primary-mid: #5c1820;
+            --accent-gold: #cca43b;
+            --bg-light: #fdfaf6;
+            --bg-card: #ffffff;
+            --text-dark: #2d1518;
+            --text-muted: #7d6769;
+            --border-color: #f1eae2;
+            
+            /* Status Badge Colors */
+            --status-success-bg: #dcfce7;
+            --status-success-text: #16a34a;
+            --status-pending-bg: #fef3c7;
+            --status-pending-text: #d97706;
+            --status-cancelled-bg: #fee2e2;
+            --status-cancelled-text: #dc2626;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* --- SIDEBAR NAVIGATION DESIGNS --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--primary-dark);
+            color: #ffffff;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .brand-logo {
+            width: 42px;
+            height: 42px;
+            background-color: var(--accent-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-logo::after {
+            content: "👑";
+            font-size: 20px;
+        }
+
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--bg-light);
+            letter-spacing: 0.5px;
+        }
+
+        .admin-panel-tag {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-gold);
+            margin-bottom: 16px;
+            font-weight: 600;
+            padding-left: 8px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #e2d4d5;
+            text-decoration: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-menu li a:hover, 
+        .sidebar-menu li.active a {
+            background-color: var(--primary-mid);
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .sidebar-menu li.active a i {
+            color: var(--accent-gold);
+        }
+
+        .sidebar-menu li.logout-btn {
+            margin-top: auto;
+            padding-top: 24px;
+        }
+
+        .sidebar-menu li.logout-btn a {
+            color: #fca5a5;
+        }
+
+        .sidebar-menu li.logout-btn a:hover {
+            background-color: #7f1d1d;
+            color: #ffffff;
+        }
+
+        .footer-branding {
+            margin-top: 40px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0.6;
+            line-height: 1.5;
+            padding: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* --- CONTENT BODY PANELS --- */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            width: calc(100% - 260px);
+            padding: 40px;
+            overflow-x: hidden;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .page-title h1 {
+            font-size: 1.85rem;
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+
+        /* --- DATA TABLE RENDERING CONFIGURATIONS --- */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        thead th {
+            padding: 14px 16px;
+            background-color: #faf6f0;
+            color: var(--primary-dark);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-dark);
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        tr:last-child td { 
+            border-bottom: none; 
+        }
+
+        /* --- STRENGTHENED CONTROL NODES & INTERACTION ELEMENTS --- */
+        input[type="number"] {
+            width: 75px;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.88rem;
+            background-color: #fdfdfd;
+            color: var(--text-dark);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 0 2px rgba(204, 164, 59, 0.1);
+        }
+
+        .btn-update-stock {
+            padding: 6px 12px;
+            background-color: var(--primary-mid);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn-update-stock:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* Dynamic Status Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: capitalize;
+            text-align: center;
+        }
+
+        .badge.success {
+            background-color: var(--status-success-bg);
+            color: var(--status-success-text);
+        }
+
+        .badge.pending {
+            background-color: var(--status-pending-bg);
+            color: var(--status-pending-text);
+        }
+
+        .badge.cancelled {
+            background-color: var(--status-cancelled-bg);
+            color: var(--status-cancelled-text);
+        }
+    </style>
 </head>
 <body>
+
     <nav class="sidebar">
         <div class="brand-section">
             <div class="brand-logo"></div>
             <div class="brand-name">Clara's Best</div>
         </div>
+        <div class="admin-panel-tag">Admin Panel</div>
         <ul class="sidebar-menu">
-            <li><a href="admin.html">Dashboard</a></li>
-            <li><a href="users.html">Users</a></li>
-            <li><a href="products.html">Products</a></li>
-            <li><a href="orders.html">Orders</a></li>
-            <li><a href="reservations.html">Reservations</a></li>
-             <li><a href="cancellation.html">Cancellations</a></li>
-            <li class="active"><a href="inventory.html">Inventory</a></li>
-            <li><a href="payments.html">Payments</a></li>
-            <li><a href="reports.html">Reports</a></li>
-            <li><a href="settings.html">Settings</a></li>
-            <li class="logout-btn"><a href="#logout" id="logoutBtn">Logout</a></li>
+            <li><a href="admin.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="users.html"><i class="fa-solid fa-users"></i> Users</a></li>
+            <li><a href="products.html"><i class="fa-solid fa-cookie-bite"></i> Products</a></li>
+            <li><a href="orders.html"><i class="fa-solid fa-shopping-bag"></i> Orders</a></li>
+            <li><a href="reservations.html"><i class="fa-solid fa-calendar-check"></i> Reservations</a></li>
+            <li><a href="cancellation.html"><i class="fa-solid fa-ban"></i> Cancellation Requests</a></li>
+            <li class="active"><a href="inventory.html"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a></li>
+            <li><a href="payments.html"><i class="fa-solid fa-credit-card"></i> Payments</a></li>
+            <li><a href="reports.html"><i class="fa-solid fa-file-invoice-dollar"></i> Reports</a></li>
+            <li><a href="settings.html"><i class="fa-solid fa-sliders"></i> Settings</a></li>
+            <li class="logout-btn"><a href="#logout" id="logoutBtn" onclick="processLogout(event)"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
         </ul>
+        <div class="footer-branding">
+            <strong>Clara's Best: Kakanin Delicacies</strong><br>
+            Poblacion, Hinunangan, Southern Leyte
+        </div>
     </nav>
+
     <main class="main-content">
         <div class="header-container">
-            <div class="page-title"><h1>Inventory Control</h1></div>
+            <div class="page-title">
+                <h1>Inventory Control</h1>
+            </div>
         </div>
+        
         <div class="table-container">
             <table>
                 <thead>
@@ -42,7 +318,9 @@
                 </thead>
                 <tbody id="inventoryTableBody">
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 20px;">Loading inventory items...</td>
+                        <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Loading inventory items...
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -54,18 +332,13 @@
             fetchInventory();
 
             // Clear stale session cookies cleanly on logout click using absolute root paths
-            document.getElementById('logoutBtn').addEventListener('click', async (e) => {
-                e.preventDefault();
-                try {
-                    const res = await fetch('/api/logout');
-                    if (res.ok) {
-                        // Updated to match backend absolute route redirection context
-                        window.location.href = '/login.html';
-                    }
-                } catch (err) {
-                    console.error('Logout error context:', err);
-                }
-            });
+            const logoutLink = document.getElementById('logoutBtn');
+            if (logoutLink) {
+                logoutLink.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    await processLogout(e);
+                });
+            }
         });
 
         // Pull product quantities dynamically from backend schemas
@@ -78,7 +351,7 @@
                 const products = await res.json();
                 
                 if (products.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px;">No registered product entries discovered.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">No registered product entries discovered.</td></tr>`;
                     return;
                 }
 
@@ -94,21 +367,21 @@
                     
                     if (stock === 0) {
                         statusText = 'Out of Stock';
-                        statusClass = 'cancelled'; // uses your red alert styling class
+                        statusClass = 'cancelled'; // uses red alert styling class
                     } else if (stock <= 10) {
                         statusText = 'Low Stock';
                         statusClass = 'pending'; // matches class="badge pending" orange/yellow
                     }
 
                     tr.innerHTML = `
-                        <td><strong>${escapeHtml(item.name)}</strong></td>
-                        <td><span id="stock-val-${item.id}">${stock}</span></td>
-                        <td>pcs / batches</td>
+                        <td><strong style="color: var(--primary-dark);">${escapeHtml(item.name)}</strong></td>
+                        <td><span id="stock-val-${item.id}" style="font-weight: 600;">${stock}</span></td>
+                        <td style="color: var(--text-muted); font-size: 0.85rem;">pcs / batches</td>
                         <td><span class="badge ${statusClass}">${statusText}</span></td>
                         <td>
-                            <div style="display: flex; gap: 5px; align-items: center;">
-                                <input type="number" id="input-${item.id}" value="${stock}" min="0" style="width: 70px; padding: 4px; border-radius: 4px; border: 1px solid #ccc;">
-                                <button onclick="quickUpdateStock(${item.id}, ${JSON.stringify(item)})" style="padding: 4px 8px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                <input type="number" id="input-${item.id}" value="${stock}" min="0">
+                                <button class="btn-update-stock" onclick="quickUpdateStock(${item.id}, ${JSON.stringify(item).replace(/"/g, '&quot;')})">
                                     Update
                                 </button>
                             </div>
@@ -119,7 +392,12 @@
 
             } catch (err) {
                 console.error('Could not load inventory:', err);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red; padding: 20px;">Failed to gather database matrix lists. Ensure server schema paths are active.</td></tr>`;
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #dc2626; padding: 30px; font-weight: bold;">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Failed to gather database matrix lists. Ensure server schema paths are active.
+                        </td>
+                    </tr>`;
             }
         }
 
@@ -158,10 +436,30 @@
                 }
             } catch (err) {
                 console.error(err);
+                alert('An error occurred while attempting to save inventory state transformations.');
             }
         }
 
-        // Sanitization logic block
+        // Session logout routine execution block
+        async function processLogout(event) {
+            if (event) event.preventDefault();
+            if (!confirm("Are you sure you want to end your current session and sign out?")) return;
+
+            try {
+                const check = await fetch('/api/logout');
+                if (check.ok) {
+                    alert("Logged out successfully.");
+                    window.location.href = '/login.html';
+                } else {
+                    alert("Failed to close remote web session clean on server.");
+                }
+            } catch (error) {
+                console.error("Logout runtime error network connection failure:", error);
+                alert("Network connection drop detected. Could not execute structural logout configurations.");
+            }
+        }
+
+        // Sanitization logic block against vector data inclusion
         function escapeHtml(str) {
             return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }

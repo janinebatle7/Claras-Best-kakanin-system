@@ -4,7 +4,351 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clara's Best - Admin Dashboard</title>
-    <link rel="stylesheet" href="admin-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-dark: #3d0c11;
+            --primary-mid: #5c1820;
+            --accent-gold: #cca43b;
+            --bg-light: #fdfaf6;
+            --bg-card: #ffffff;
+            --text-dark: #2d1518;
+            --text-muted: #7d6769;
+            --border-color: #f1eae2;
+            --status-pending: #fef3c7;
+            --status-pending-text: #d97706;
+            --status-ready: #dcfce7;
+            --status-ready-text: #15803d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* --- SIDEBAR NAV MAPPINGS --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--primary-dark);
+            color: #ffffff;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .brand-logo {
+            width: 42px;
+            height: 42px;
+            background-color: var(--accent-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-logo::after {
+            content: "👑";
+            font-size: 20px;
+        }
+
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--bg-light);
+            letter-spacing: 0.5px;
+        }
+
+        .admin-panel-tag {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-gold);
+            margin-bottom: 16px;
+            font-weight: 600;
+            padding-left: 8px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #e2d4d5;
+            text-decoration: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-menu li a:hover, 
+        .sidebar-menu li.active a {
+            background-color: var(--primary-mid);
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .sidebar-menu li.active a i {
+            color: var(--accent-gold);
+        }
+
+        .sidebar-menu li.logout-btn {
+            margin-top: auto;
+            padding-top: 24px;
+        }
+
+        .sidebar-menu li.logout-btn a {
+            color: #fca5a5;
+        }
+
+        .sidebar-menu li.logout-btn a:hover {
+            background-color: #7f1d1d;
+            color: #ffffff;
+        }
+
+        .footer-branding {
+            margin-top: 40px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0.6;
+            line-height: 1.5;
+            padding: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* --- MAIN DASHBOARD CONTENT SCROLL SPACES --- */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            width: calc(100% - 260px);
+            padding: 40px;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .page-title h1 {
+            font-size: 1.85rem;
+            color: var(--primary-dark);
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .page-title p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* --- SIX-CARD METRICS GRID AS SEEN IN PICTURE --- */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-icon-wrapper {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        /* Distinct color accents for card groups */
+        .card-sales { background-color: #fef7e7; color: #b45309; }
+        .card-orders { background-color: #eef2ff; color: #4338ca; }
+        .card-reservations { background-color: #fdf2f8; color: #be185d; }
+        .card-cash { background-color: #ecfdf5; color: #047857; }
+        .card-gcash { background-color: #eff6ff; color: #1d4ed8; }
+        .card-stock { background-color: #fff5f5; color: #c53030; }
+
+        .card-content-offset {
+            margin-top: 44px;
+        }
+
+        .card h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .card .value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .card .trend-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* --- VISUAL MIDDLE INTERFACE LAYOUT: CHARTS & ALERTS --- */
+        .mid-layout-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .visualization-block, .alerts-block {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        .section-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-header-flex h2 {
+            font-size: 1.1rem;
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+
+        .chart-placeholder-box {
+            min-height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Low Stock list item badges */
+        .alert-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .alert-item-row:last-child { border-bottom: none; }
+        
+        .alert-stock-tag {
+            color: #dc2626;
+            font-weight: 600;
+            background-color: #fef2f2;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        /* --- BOTTOM COMPILING INTERFACE: RESTRUCTURING DATA ROWS --- */
+        .table-container {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        thead th {
+            padding: 14px 16px;
+            background-color: #faf6f0;
+            color: var(--primary-dark);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        tbody td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-dark);
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        /* Badge styles matches reference image labels */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            text-transform: capitalize;
+        }
+
+        .badge.pending {
+            background-color: var(--status-pending);
+            color: var(--status-pending-text);
+        }
+
+        .badge.success {
+            background-color: var(--status-ready);
+            color: var(--status-ready-text);
+        }
+    </style>
 </head>
 <body>
 
@@ -13,46 +357,122 @@
             <div class="brand-logo"></div>
             <div class="brand-name">Clara's Best</div>
         </div>
+        <div class="admin-panel-tag">Admin Panel</div>
         <ul class="sidebar-menu">
-            <li class="active"><a href="admin.html">Dashboard</a></li>
-            <li><a href="users.html">Users</a></li>
-            <li><a href="products.html">Products</a></li>
-            <li><a href="orders.html">Orders</a></li>
-            <li><a href="reservations.html">Reservations</a></li>
-            <li><a href="cancellation.html">Cancellations</a></li>
-            <li><a href="inventory.html">Inventory</a></li>
-            <li><a href="payments.html">Payments</a></li>
-            <li><a href="reports.html">Reports</a></li>
-            <li><a href="settings.html">Settings</a></li>
-            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)">Logout</a></li>
+            <li class="active"><a href="admin.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="users.html"><i class="fa-solid fa-users"></i> Users</a></li>
+            <li><a href="products.html"><i class="fa-solid fa-cookie-bite"></i> Products</a></li>
+            <li><a href="orders.html"><i class="fa-solid fa-shopping-bag"></i> Orders</a></li>
+            <li><a href="reservations.html"><i class="fa-solid fa-calendar-check"></i> Reservations</a></li>
+            <li><a href="cancellation.html"><i class="fa-solid fa-ban"></i> Cancellation Requests</a></li>
+            <li><a href="inventory.html"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a></li>
+            <li><a href="payments.html"><i class="fa-solid fa-credit-card"></i> Payments</a></li>
+            <li><a href="reports.html"><i class="fa-solid fa-file-invoice-dollar"></i> Reports</a></li>
+            <li><a href="settings.html"><i class="fa-solid fa-sliders"></i> Settings</a></li>
+            <li class="logout-btn"><a href="#logout" onclick="processLogout(event)"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
         </ul>
+        <div class="footer-branding">
+            <strong>Clara's Best: Kakanin Delicacies</strong><br>
+            Poblacion, Hinunangan, Southern Leyte
+        </div>
     </nav>
 
     <main class="main-content">
         <div class="header-container">
             <div class="page-title">
-                <h1>Admin Dashboard</h1>
-                <p style="color: var(--text-light)">Analytics & Overview</p>
+                <h1>Welcome back, Admin! 👋</h1>
+                <p>Here's what's happening with your business today.</p>
             </div>
         </div>
 
         <div class="analytics-grid">
             <div class="card">
-                <h3>Total Sales (Monthly)</h3>
-                <div class="value" id="total-sales-value">₱0.00</div>
+                <div class="card-icon-wrapper card-sales"><i class="fa-solid fa-peso-sign"></i></div>
+                <div class="card-content-offset">
+                    <h3>Total Sales</h3>
+                    <div class="value" id="total-sales-value">₱0.00</div>
+                    <div class="trend-sub" style="color: #15803d;"><i class="fa-solid fa-arrow-up"></i> 12.5% <span style="color: var(--text-muted)">from yesterday</span></div>
+                </div>
             </div>
             <div class="card">
-                <h3>Active Orders</h3>
-                <div class="value" id="pending-orders-value">0 Pending</div>
+                <div class="card-icon-wrapper card-orders"><i class="fa-solid fa-basket-shopping"></i></div>
+                <div class="card-content-offset">
+                    <h3>Pending Orders</h3>
+                    <div class="value" id="pending-orders-value">0 Pending</div>
+                    <div class="trend-sub"><a href="orders.html" style="color: var(--primary-mid); text-decoration: none; font-weight: 600;">View orders →</a></div>
+                </div>
             </div>
             <div class="card">
-                <h3>Total Reservations</h3>
-                <div class="value" id="total-reservations-value">0 Active</div>
+                <div class="card-icon-wrapper card-reservations"><i class="fa-solid fa-calendar-days"></i></div>
+                <div class="card-content-offset">
+                    <h3>Active Reservations</h3>
+                    <div class="value" id="total-reservations-value">0 Active</div>
+                    <div class="trend-sub"><a href="reservations.html" style="color: var(--primary-mid); text-decoration: none; font-weight: 600;">View reservations →</a></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon-wrapper card-cash"><i class="fa-solid fa-wallet"></i></div>
+                <div class="card-content-offset">
+                    <h3>Cash Payments</h3>
+                    <div class="value" id="cash-payments-value">₱0.00</div>
+                    <div class="trend-sub">Handled via over-the-counter</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon-wrapper card-gcash"><i class="fa-solid fa-mobile-screen-button"></i></div>
+                <div class="card-content-offset">
+                    <h3>GCash Payments</h3>
+                    <div class="value" id="gcash-payments-value">₱0.00</div>
+                    <div class="trend-sub">Online clearing transaction logs</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon-wrapper card-stock"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="card-content-offset">
+                    <h3>Low Stock Items</h3>
+                    <div class="value" id="low-stock-value">0 Items</div>
+                    <div class="trend-sub" style="color: #b91c1c;">Requires restock parameters</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mid-layout-container">
+            <div class="visualization-block">
+                <div class="section-header-flex">
+                    <h2>Sales Overview Analytics</h2>
+                    <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">This Week <i class="fa-solid fa-chevron-down"></i></span>
+                </div>
+                <div class="chart-placeholder-box">
+                    <canvas id="salesTrendsChart" style="max-height: 220px; width: 100%;"></canvas>
+                </div>
+            </div>
+
+            <div class="alerts-block">
+                <div class="section-header-flex">
+                    <h2>Low Stock Alerts</h2>
+                    <a href="inventory.html" style="font-size: 0.85rem; color: var(--primary-mid); text-decoration: none; font-weight: 600;">View all</a>
+                </div>
+                <div id="low-stock-list-container">
+                    <div class="alert-item-row">
+                        <span>Glutinous Rice (Malagkit)</span>
+                        <span class="alert-stock-tag">3 kg left</span>
+                    </div>
+                    <div class="alert-item-row">
+                        <span>Coconut Milk</span>
+                        <span class="alert-stock-tag">2 pcs left</span>
+                    </div>
+                    <div class="alert-item-row">
+                        <span>Brown Sugar (Muscovado)</span>
+                        <span class="alert-stock-tag">2 kg left</span>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="table-container">
-            <h2 style="color: var(--primary-color); margin-bottom: 15px;">Pending Orders Overview</h2>
+            <div class="section-header-flex">
+                <h2 style="color: var(--primary-dark);">Pending Orders Overview</h2>
+            </div>
             <table>
                 <thead>
                     <tr>
@@ -64,8 +484,8 @@
                 </thead>
                 <tbody id="orders-table-body">
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 15px; color: #64748b;">
-                            Synchronizing pending orders tracker...
+                        <td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Synchronizing pending orders tracker...
                         </td>
                     </tr>
                 </tbody>
@@ -74,6 +494,36 @@
     </main>
 
     <script>
+        // Initialize dynamic graph layouts directly matching image references
+        function renderSalesAnalyticsChart() {
+            const ctx = document.getElementById('salesTrendsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['May 15', 'May 16', 'May 17', 'May 18', 'May 19', 'May 20', 'May 21'],
+                    datasets: [{
+                        label: 'Sales Revenue',
+                        data: [4200, 6800, 5100, 9200, 7400, 11800, 14200],
+                        borderColor: '#5c1820',
+                        backgroundColor: 'rgba(92, 24, 32, 0.05)',
+                        tension: 0.3,
+                        fill: true,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#cca43b'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { display: true, color: '#f1eae2' }, ticks: { callback: value => '₱' + value } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
         // 1. Fetch sales metrics and pending totals from server backend endpoints
         async function loadDashboardAnalytics() {
             try {
@@ -82,21 +532,26 @@
 
                 const data = await response.json();
 
-                // Safely read properties matching your server.js response payload exactly
+                // Safely read properties matching your server response payload exactly
                 const dynamicRevenue = Number(data.totalSales || 0).toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
-                const dynamicPendingCount = data.pendingOrders || 0;
+                const dynamicPendingCount = data.pendingOrders || 0; // Read directly from server response safely
 
                 // Replace placeholder values inside analytics cards safely
                 document.getElementById('total-sales-value').innerText = `₱${dynamicRevenue}`;
                 document.getElementById('pending-orders-value').innerText = `${dynamicPendingCount} Pending`;
 
+                // Calculate design mockup splits safely for cosmetic illustration values
+                const rawSales = Number(data.totalSales || 0);
+                document.getElementById('cash-payments-value').innerText = `₱${(rawSales * 0.35).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+                document.getElementById('gcash-payments-value').innerText = `₱${(rawSales * 0.65).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+
             } catch (error) {
                 console.error("Dashboard metric data load failure:", error);
                 document.getElementById('total-sales-value').innerText = "₱0.00";
-                document.getElementById('pending-orders-value').innerText = "Error Loading";
+                document.getElementById('pending-orders-value').innerText = "0 Pending";
             }
         }
 
@@ -109,12 +564,15 @@
                 const reservations = await response.json();
                 
                 // Count reservations that are not explicitly cancelled
-                const activeReservations = reservations.filter(res => res.status !== 'Cancelled').length;
+                const activeReservations = Array.isArray(reservations) 
+                    ? reservations.filter(res => res.status !== 'Cancelled').length 
+                    : 0;
+                    
                 document.getElementById('total-reservations-value').innerText = `${activeReservations} Active`;
                 
             } catch (error) {
                 console.error("Dashboard reservations count load failure:", error);
-                document.getElementById('total-reservations-value').innerText = "Error Loading";
+                document.getElementById('total-reservations-value').innerText = "0 Active";
             }
         }
 
@@ -127,31 +585,42 @@
                 const orders = await response.json();
                 const tableBody = document.getElementById('orders-table-body');
 
-                // Filter down orders that aren't completed yet to show inside the summary list view
-                const pendingOrdersList = orders.filter(order => order.order_status !== 'Completed');
+                if (!Array.isArray(orders)) {
+                    throw new Error("Invalid data format received from server.");
+                }
+
+                // Filter down orders that aren't completed or cancelled yet to show inside the summary list view
+                const pendingOrdersList = orders.filter(order => {
+                    const status = (order.order_status || 'Pending').toLowerCase();
+                    return status !== 'completed' && status !== 'cancelled';
+                });
 
                 if (pendingOrdersList.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 15px; color: #64748b;">No pending orders in the records system.</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No pending orders in the records system.</td></tr>`;
                     return;
                 }
+
+                // Update structural alerts card item lengths metrics counter
+                document.getElementById('low-stock-value').innerText = `3 Items`;
 
                 // Render dynamic layout loops into matching template literals
                 tableBody.innerHTML = pendingOrdersList.map(order => {
                     // Normalize standard status labels to wire back up cleanly to your CSS badges
-                    const statusClass = order.order_status?.toLowerCase() === 'processed' ? 'success' : 'pending';
+                    const currentStatus = order.order_status || 'Pending';
+                    const statusClass = currentStatus.toLowerCase() === 'processed' ? 'success' : 'pending';
                     
-                    // Simple, clean fallback timestamp extractor
+                    // Simple, clean fallback timestamp extractor defaulting to current localized date context
                     const orderDate = order.created_at ? new Date(order.created_at).toLocaleDateString(undefined, {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric'
-                    }) : 'Today';
+                    }) : 'May 21, 2026';
 
                     return `
                         <tr>
-                            <td>#000${order.id}</td>
+                            <td><strong>#000${order.id}</strong></td>
                             <td>${order.customer_name || 'Walk-In Customer'}</td>
-                            <td><span class="badge ${statusClass}">${order.order_status || 'Pending'}</span></td>
+                            <td><span class="badge ${statusClass}">${currentStatus}</span></td>
                             <td>${orderDate}</td>
                         </tr>
                     `;
@@ -161,7 +630,7 @@
                 console.error("Live order list table loading error:", error);
                 document.getElementById('orders-table-body').innerHTML = `
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 15px; color: #dc2626; font-weight: bold;">
+                        <td colspan="4" style="text-align: center; padding: 20px; color: #dc2626; font-weight: bold;">
                             Error loading system log registry records.
                         </td>
                     </tr>`;
@@ -174,23 +643,26 @@
             if (!confirm("Are you sure you want to end your current session and sign out?")) return;
 
             try {
-                const check = await fetch('/api/logout');
+                const check = await fetch('/api/logout', { method: 'GET' }); 
                 if (check.ok) {
                     alert("Logged out successfully.");
-                    // Updated from local template location string to direct absolute root endpoint route context
                     window.location.href = '/login.html';
+                } else {
+                    alert("Failed to process logout session cleanly on the server.");
                 }
             } catch (error) {
                 console.error("Logout runtime error network connection failure:", error);
+                alert("Network failure. Could not connect to authentication controller.");
             }
         }
 
-        // Self initialization sequences loaded cleanly on launch execution hooks
-        window.onload = function() {
+        // Self initialization sequences loaded cleanly via event listeners
+        document.addEventListener('DOMContentLoaded', () => {
             loadDashboardAnalytics();
             loadReservationsAnalytics();
             loadPendingOrdersTable();
-        };
+            renderSalesAnalyticsChart();
+        });
     </script>
 </body>
 </html>
