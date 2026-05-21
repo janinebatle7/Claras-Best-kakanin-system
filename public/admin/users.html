@@ -292,13 +292,14 @@
                         <th>User ID</th>
                         <th>Name</th>
                         <th>Email</th>
+                        <th>Address</th>
                         <th>Role</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="users-table-body">
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                        <td colspan="6" style="text-align: center; padding: 30px; color: var(--text-muted);">
                             <i class="fa-solid fa-spinner fa-spin"></i> Loading user accounts...
                         </td>
                     </tr>
@@ -321,7 +322,7 @@
                 const tableBody = document.getElementById('users-table-body');
                 
                 if (users.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">No registered users found.</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-muted);">No registered users found.</td></tr>`;
                     return;
                 }
 
@@ -332,11 +333,15 @@
                     if (user.role === 'Admin') badgeClass = 'badge-admin';
                     if (user.role === 'Staff') badgeClass = 'badge-staff';
 
+                    // Fallback string if address fields happen to be empty/null in database
+                    const userAddress = user.address || 'N/A';
+
                     return `
                         <tr>
                             <td><strong>#US-${user.id}</strong></td>
                             <td>${user.name}</td>
                             <td>${user.email}</td>
+                            <td>${userAddress}</td>
                             <td>
                                 <span class="badge ${badgeClass}">
                                     ${user.role}
@@ -355,7 +360,7 @@
                 console.error("Error connecting to user API:", error);
                 document.getElementById('users-table-body').innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 30px; color: #dc2626; font-weight: bold;">
+                        <td colspan="6" style="text-align: center; padding: 30px; color: #dc2626; font-weight: bold;">
                             <i class="fa-solid fa-triangle-exclamation"></i> Failed to read user registry. Please ensure server API endpoints are fully active.
                         </td>
                     </tr>`;

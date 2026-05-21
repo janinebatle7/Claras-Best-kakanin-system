@@ -524,7 +524,7 @@
             });
         }
 
-        // 1. Fetch sales metrics and pending totals from server backend endpoints
+        // 1. Fetch sales metrics from server backend endpoints
         async function loadDashboardAnalytics() {
             try {
                 const response = await fetch('/api/admin/sales');
@@ -537,11 +537,9 @@
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
-                const dynamicPendingCount = data.pendingOrders || 0; // Read directly from server response safely
 
                 // Replace placeholder values inside analytics cards safely
                 document.getElementById('total-sales-value').innerText = `₱${dynamicRevenue}`;
-                document.getElementById('pending-orders-value').innerText = `${dynamicPendingCount} Pending`;
 
                 // Calculate design mockup splits safely for cosmetic illustration values
                 const rawSales = Number(data.totalSales || 0);
@@ -551,7 +549,6 @@
             } catch (error) {
                 console.error("Dashboard metric data load failure:", error);
                 document.getElementById('total-sales-value').innerText = "₱0.00";
-                document.getElementById('pending-orders-value').innerText = "0 Pending";
             }
         }
 
@@ -576,7 +573,7 @@
             }
         }
 
-        // 3. Fetch and render real database rows inside the pending orders grid table view
+        // 3. Fetch, calculate pending items, and render database rows inside the dashboard orders overview table
         async function loadPendingOrdersTable() {
             try {
                 const response = await fetch('/api/orders');
@@ -594,6 +591,9 @@
                     const status = (order.order_status || 'Pending').toLowerCase();
                     return status !== 'completed' && status !== 'cancelled';
                 });
+
+                // DYNAMIC UPDATE: Track and write true actual calculations to the analytical summary metric box up top
+                document.getElementById('pending-orders-value').innerText = `${pendingOrdersList.length} Pending`;
 
                 if (pendingOrdersList.length === 0) {
                     tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No pending orders in the records system.</td></tr>`;
@@ -628,6 +628,7 @@
 
             } catch (error) {
                 console.error("Live order list table loading error:", error);
+                document.getElementById('pending-orders-value').innerText = "0 Pending";
                 document.getElementById('orders-table-body').innerHTML = `
                     <tr>
                         <td colspan="4" style="text-align: center; padding: 20px; color: #dc2626; font-weight: bold;">

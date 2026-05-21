@@ -380,7 +380,7 @@ app.get('/api/admin/sales', async (req, res) => {
 
     // Isolated tracking blocks so a temporary structural warning doesn't freeze components
     try {
-        // FIXED: Replaced double quotes around 'Paid' text token with correct SQL single quotes
+        // FIXED: Using string values properly encapsulated in single quotes
         const [[sales]] = await pool.query("SELECT COALESCE(SUM(total_price), 0) as total FROM orders WHERE payment_status = 'Paid'");
         calculatedSalesTotal = sales ? (sales.total || 0) : 0;
     } catch (salesErr) {
@@ -388,7 +388,7 @@ app.get('/api/admin/sales', async (req, res) => {
     }
 
     try {
-        // FIXED: Replaced double quotes around 'pending' text token with correct SQL single quotes
+        // FIXED: Using string values properly encapsulated in single quotes
         const [[pending]] = await pool.query("SELECT COUNT(*) as count FROM orders WHERE LOWER(order_status) = 'pending'");
         calculatedPendingCount = pending ? (pending.count || 0) : 0;
     } catch (pendingErr) {
@@ -423,7 +423,8 @@ app.get('/api/payments', async (req, res) => {
 app.get('/api/users', async (req, res) => {
     if (!isStaff(req)) return res.status(403).json({ error: "Access denied. Admin or Staff role required." });
     try {
-        const [rows] = await pool.query('SELECT id, name, email, role FROM users ORDER BY id DESC');
+        // MODIFIED: Explicitly selected the address field here to sync with front-end changes
+        const [rows] = await pool.query('SELECT id, name, email, address, role FROM users ORDER BY id DESC');
         res.json(rows);
     } catch (err) { 
         res.status(500).json({ error: err.message }); 
