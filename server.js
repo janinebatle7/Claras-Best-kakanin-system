@@ -89,12 +89,13 @@ app.get('/api/session', (req, res) => {
     }
 });
 
+// Updated Signup Route to incorporate Address registration values
 app.post('/api/signup', async (req, res) => {
     try {
-        const { name, email, password, phone } = req.body;
+        const { name, email, password, phone, address } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
-        await pool.query('INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)', 
-        [name, email, hashedPassword, phone, 'Customer']);
+        await pool.query('INSERT INTO users (name, email, password, phone, address, role) VALUES (?, ?, ?, ?, ?, ?)', 
+        [name, email, hashedPassword, phone, address || null, 'Customer']);
         res.status(201).json({ message: "Registration successful" });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
